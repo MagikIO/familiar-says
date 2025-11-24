@@ -1,0 +1,10 @@
+## Cat character
+$the_cow = <<EOC;
+       $thoughts
+        $thoughts
+         $thoughts
+          /\\_/\\
+         ( $eyes )
+         =( I )=
+           U
+EOC
