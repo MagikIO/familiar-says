@@ -1,0 +1,13 @@
+## Penguin character - cute Linux mascot
+$the_cow = <<EOC;
+   $thoughts
+    $thoughts
+     $thoughts
+       .--.
+      |$eyes |
+      |:_/ |
+     //   \\ \\
+    (|     | )
+   /'\_   _/`\\
+   \\___)=(___/
+EOC

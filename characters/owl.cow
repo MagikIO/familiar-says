@@ -1,0 +1,10 @@
+## Owl character - wise and mysterious
+$the_cow = <<EOC;
+     $thoughts
+      $thoughts
+       $thoughts
+        ___
+       (o,o)
+       {`"'}
+       -"-"-
+EOC

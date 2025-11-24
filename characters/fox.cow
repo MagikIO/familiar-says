@@ -1,0 +1,12 @@
+## Fox character - clever and quick
+$the_cow = <<EOC;
+       $thoughts
+        $thoughts
+      /\\_/\\
+     ( $eyes )
+     =( W )=
+      )   (
+     /     \\
+    (  |_|  )
+     \\_____/
+EOC

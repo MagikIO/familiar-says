@@ -1,0 +1,15 @@
+## Robot character - mechanical and futuristic
+$the_cow = <<EOC;
+       $thoughts
+        $thoughts
+         $thoughts
+      _____
+     |     |
+     | $eyes |
+     |_____|
+      |   |
+     /|   |\\
+    / |   | \\
+      |   |
+     __|___|__
+EOC
