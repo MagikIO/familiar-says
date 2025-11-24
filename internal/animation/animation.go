@@ -13,13 +13,13 @@ type TickMsg time.Time
 
 // Model represents the animation state
 type Model struct {
-	Content        []string
-	CurrentIndex   int
-	AnimationType  AnimationType
-	Speed          time.Duration
-	Done           bool
-	ShowCursor     bool
-	CursorBlink    bool
+	Content       []string
+	CurrentIndex  int
+	AnimationType AnimationType
+	Speed         time.Duration
+	Done          bool
+	ShowCursor    bool
+	CursorBlink   bool
 }
 
 // AnimationType defines the type of animation
@@ -38,13 +38,13 @@ func New(content []string, animType AnimationType, speed time.Duration) Model {
 		speed = 50 * time.Millisecond
 	}
 	return Model{
-		Content:        content,
-		CurrentIndex:   0,
-		AnimationType:  animType,
-		Speed:          speed,
-		Done:           animType == AnimationNone,
-		ShowCursor:     animType == AnimationTyping,
-		CursorBlink:    true,
+		Content:       content,
+		CurrentIndex:  0,
+		AnimationType: animType,
+		Speed:         speed,
+		Done:          animType == AnimationNone,
+		ShowCursor:    animType == AnimationTyping,
+		CursorBlink:   true,
 	}
 }
 
@@ -65,7 +65,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.CurrentIndex++
-		
+
 		// Calculate total characters
 		totalChars := 0
 		for _, line := range m.Content {

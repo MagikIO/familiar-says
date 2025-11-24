@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -96,15 +97,21 @@ func runSay(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		message = strings.Join(args, " ")
 	} else {
-		// Read from stdin
-		data, err := os.ReadFile("/dev/stdin")
-		if err != nil {
-			message = "Hello from familiar-says!"
-		} else {
-			message = strings.TrimSpace(string(data))
-			if message == "" {
+		// Read from stdin if available
+		stat, err := os.Stdin.Stat()
+		if err == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
+			// Data is being piped to stdin
+			data, err := io.ReadAll(os.Stdin)
+			if err != nil {
 				message = "Hello from familiar-says!"
+			} else {
+				message = strings.TrimSpace(string(data))
+				if message == "" {
+					message = "Hello from familiar-says!"
+				}
 			}
+		} else {
+			message = "Hello from familiar-says!"
 		}
 	}
 

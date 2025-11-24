@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 // Effect represents a visual effect type
 type Effect string
 
@@ -37,17 +39,16 @@ func Apply(content []string, effect Effect) []string {
 
 // applyConfetti adds confetti characters around the content
 func applyConfetti(content []string) []string {
-	rand.Seed(time.Now().UnixNano())
 	confetti := []string{"*", "·", "°", "•", "◦", "∘", "○"}
 	colors := []lipgloss.Color{"196", "226", "46", "51", "201", "208"}
 
 	result := []string{}
-	
+
 	// Add confetti header
 	header := ""
 	for i := 0; i < 60; i++ {
-		char := confetti[rand.Intn(len(confetti))]
-		color := colors[rand.Intn(len(colors))]
+		char := confetti[rng.Intn(len(confetti))]
+		color := colors[rng.Intn(len(colors))]
 		style := lipgloss.NewStyle().Foreground(color)
 		header += style.Render(char) + " "
 	}
@@ -55,9 +56,9 @@ func applyConfetti(content []string) []string {
 
 	// Add content with occasional confetti
 	for _, line := range content {
-		if rand.Float64() < 0.3 {
-			char := confetti[rand.Intn(len(confetti))]
-			color := colors[rand.Intn(len(colors))]
+		if rng.Float64() < 0.3 {
+			char := confetti[rng.Intn(len(confetti))]
+			color := colors[rng.Intn(len(colors))]
 			style := lipgloss.NewStyle().Foreground(color)
 			line = style.Render(char) + " " + line + " " + style.Render(char)
 		}
@@ -67,8 +68,8 @@ func applyConfetti(content []string) []string {
 	// Add confetti footer
 	footer := ""
 	for i := 0; i < 60; i++ {
-		char := confetti[rand.Intn(len(confetti))]
-		color := colors[rand.Intn(len(colors))]
+		char := confetti[rng.Intn(len(confetti))]
+		color := colors[rng.Intn(len(colors))]
 		style := lipgloss.NewStyle().Foreground(color)
 		footer += style.Render(char) + " "
 	}
@@ -79,7 +80,6 @@ func applyConfetti(content []string) []string {
 
 // applyFireworks adds firework-like bursts
 func applyFireworks(content []string) []string {
-	rand.Seed(time.Now().UnixNano())
 	fireworks := []string{"✦", "✧", "★", "☆", "✪", "✫", "✬", "✭", "✮", "✯"}
 	colors := []lipgloss.Color{"196", "226", "201", "51"}
 
@@ -89,9 +89,9 @@ func applyFireworks(content []string) []string {
 	for i := 0; i < 2; i++ {
 		line := ""
 		for j := 0; j < 50; j++ {
-			if rand.Float64() < 0.15 {
-				char := fireworks[rand.Intn(len(fireworks))]
-				color := colors[rand.Intn(len(colors))]
+			if rng.Float64() < 0.15 {
+				char := fireworks[rng.Intn(len(fireworks))]
+				color := colors[rng.Intn(len(colors))]
 				style := lipgloss.NewStyle().Foreground(color).Bold(true)
 				line += style.Render(char)
 			} else {
@@ -107,9 +107,9 @@ func applyFireworks(content []string) []string {
 	for i := 0; i < 2; i++ {
 		line := ""
 		for j := 0; j < 50; j++ {
-			if rand.Float64() < 0.15 {
-				char := fireworks[rand.Intn(len(fireworks))]
-				color := colors[rand.Intn(len(colors))]
+			if rng.Float64() < 0.15 {
+				char := fireworks[rng.Intn(len(fireworks))]
+				color := colors[rng.Intn(len(colors))]
 				style := lipgloss.NewStyle().Foreground(color).Bold(true)
 				line += style.Render(char)
 			} else {
@@ -124,13 +124,12 @@ func applyFireworks(content []string) []string {
 
 // applySparkle adds sparkle effects
 func applySparkle(content []string) []string {
-	rand.Seed(time.Now().UnixNano())
 	sparkles := []string{"✨", "⭐", "🌟", "💫"}
-	
+
 	result := []string{}
 	for _, line := range content {
-		if rand.Float64() < 0.4 {
-			sparkle := sparkles[rand.Intn(len(sparkles))]
+		if rng.Float64() < 0.4 {
+			sparkle := sparkles[rng.Intn(len(sparkles))]
 			line = sparkle + " " + line + " " + sparkle
 		}
 		result = append(result, line)
@@ -141,7 +140,7 @@ func applySparkle(content []string) []string {
 // applyRainbow applies rainbow colors to the content
 func applyRainbow(content []string) []string {
 	colors := []lipgloss.Color{"196", "208", "226", "46", "51", "21", "93"}
-	
+
 	result := []string{}
 	colorIndex := 0
 
@@ -167,13 +166,13 @@ func AnimateEffect(content []string, effect Effect, frames int, delay time.Durat
 	for i := 0; i < frames; i++ {
 		// Clear screen
 		fmt.Print("\033[2J\033[H")
-		
+
 		// Apply effect
 		styled := Apply(content, effect)
 		for _, line := range styled {
 			fmt.Println(line)
 		}
-		
+
 		time.Sleep(delay)
 	}
 }
@@ -187,7 +186,7 @@ func GetEffectDescription(effect Effect) string {
 		EffectSparkle:   "Adds sparkle emojis around the output",
 		EffectRainbow:   "Colors each character with rainbow colors",
 	}
-	
+
 	if desc, ok := descriptions[effect]; ok {
 		return desc
 	}

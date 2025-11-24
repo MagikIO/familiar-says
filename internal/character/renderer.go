@@ -12,8 +12,8 @@ import (
 
 // Renderer handles character rendering
 type Renderer struct {
-	Theme      personality.Theme
-	Mood       personality.Mood
+	Theme       personality.Theme
+	Mood        personality.Mood
 	BubbleWidth int
 }
 
@@ -23,8 +23,8 @@ func NewRenderer(theme personality.Theme, mood personality.Mood, width int) *Ren
 		width = 40
 	}
 	return &Renderer{
-		Theme:      theme,
-		Mood:       mood,
+		Theme:       theme,
+		Mood:        mood,
 		BubbleWidth: width,
 	}
 }
@@ -150,9 +150,9 @@ type Panel struct {
 // GetDefaultCharacter returns a default character definition
 func GetDefaultCharacter() *cowparser.CowFile {
 	return &cowparser.CowFile{
-		Eyes:      "oo",
-		Tongue:    "  ",
-		Thoughts:  "\\",
+		Eyes:     "oo",
+		Tongue:   "  ",
+		Thoughts: "\\",
 		Body: []string{
 			"        $thoughts",
 			"         $thoughts",
@@ -168,18 +168,18 @@ func GetDefaultCharacter() *cowparser.CowFile {
 // RenderInfo displays information about the current theme and mood
 func (r *Renderer) RenderInfo() string {
 	expr := r.Theme.GetExpression(r.Mood)
-	
+
 	info := fmt.Sprintf("Theme: %s | Mood: %s | Eyes: %s | Tongue: %s",
 		r.Theme.Name,
 		r.Mood,
 		expr.Eyes,
 		expr.Tongue,
 	)
-	
+
 	style := lipgloss.NewStyle().
 		Foreground(r.Theme.AccentColor).
 		Bold(true).
 		Padding(1, 2)
-	
+
 	return style.Render(info)
 }

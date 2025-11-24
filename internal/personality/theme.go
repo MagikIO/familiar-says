@@ -8,14 +8,14 @@ import (
 type Mood string
 
 const (
-	MoodHappy    Mood = "happy"
-	MoodSad      Mood = "sad"
-	MoodAngry    Mood = "angry"
+	MoodHappy     Mood = "happy"
+	MoodSad       Mood = "sad"
+	MoodAngry     Mood = "angry"
 	MoodSurprised Mood = "surprised"
-	MoodBored    Mood = "bored"
-	MoodExcited  Mood = "excited"
-	MoodNeutral  Mood = "neutral"
-	MoodSleepy   Mood = "sleepy"
+	MoodBored     Mood = "bored"
+	MoodExcited   Mood = "excited"
+	MoodNeutral   Mood = "neutral"
+	MoodSleepy    Mood = "sleepy"
 )
 
 // Expression defines the eyes and tongue for a mood
@@ -26,13 +26,13 @@ type Expression struct {
 
 // Theme represents a personality theme with colors and styles
 type Theme struct {
-	Name            string
-	PrimaryColor    lipgloss.Color
-	SecondaryColor  lipgloss.Color
-	AccentColor     lipgloss.Color
-	BubbleStyle     lipgloss.Style
-	CharacterStyle  lipgloss.Style
-	Expressions     map[Mood]Expression
+	Name           string
+	PrimaryColor   lipgloss.Color
+	SecondaryColor lipgloss.Color
+	AccentColor    lipgloss.Color
+	BubbleStyle    lipgloss.Style
+	CharacterStyle lipgloss.Style
+	Expressions    map[Mood]Expression
 }
 
 // GetExpression returns the expression for a given mood

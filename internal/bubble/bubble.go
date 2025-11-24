@@ -15,9 +15,9 @@ const (
 
 // Bubble represents a speech bubble
 type Bubble struct {
-	Text     string
-	Width    int
-	Style    Style
+	Text      string
+	Width     int
+	Style     Style
 	ThinkChar string
 }
 
@@ -53,7 +53,7 @@ func (b *Bubble) Render() []string {
 	}
 
 	result := []string{}
-	
+
 	// Top border
 	result = append(result, " "+strings.Repeat("_", maxLen+2))
 

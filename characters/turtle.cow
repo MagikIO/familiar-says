@@ -1,0 +1,12 @@
+## Turtle character - slow and steady
+$the_cow = <<EOC;
+       $thoughts
+        $thoughts
+         $thoughts
+           ___
+       .-'`   `'-.
+      /    $eyes    \\
+      |    ($tongue)   |
+       \\_  ---  _/
+         `-----'
+EOC

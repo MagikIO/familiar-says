@@ -1,0 +1,14 @@
+## Bat character - nocturnal and spooky
+$the_cow = <<EOC;
+     $thoughts                       $thoughts
+      $thoughts                     $thoughts
+       $thoughts                   $thoughts
+    /\\ /\\               /\\ /\\
+   ((oo))             ((oo))
+   ('')('')         ('')('')
+     $thoughts  /\\_/\\  $thoughts
+        \\_$eyes _/
+        (    )
+         |  |
+        (    )
+EOC

@@ -15,7 +15,7 @@ func TestGetTheme(t *testing.T) {
 		{"retro", "retro"},
 		{"unknown", "default"}, // Should return default for unknown
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			theme := GetTheme(tt.name)
@@ -28,13 +28,13 @@ func TestGetTheme(t *testing.T) {
 
 func TestThemeGetExpression(t *testing.T) {
 	theme := ThemeDefault
-	
+
 	// Test valid mood
 	expr := theme.GetExpression(MoodHappy)
 	if expr.Eyes == "" {
 		t.Error("Expected non-empty eyes for happy mood")
 	}
-	
+
 	// Test that happy mood has different eyes than neutral
 	neutralExpr := theme.GetExpression(MoodNeutral)
 	if expr.Eyes == neutralExpr.Eyes {
@@ -44,11 +44,11 @@ func TestThemeGetExpression(t *testing.T) {
 
 func TestAllThemes(t *testing.T) {
 	themes := AllThemes()
-	
+
 	if len(themes) == 0 {
 		t.Error("Expected at least one theme")
 	}
-	
+
 	// Check that all returned themes can be loaded
 	for _, name := range themes {
 		theme := GetTheme(name)
@@ -60,11 +60,11 @@ func TestAllThemes(t *testing.T) {
 
 func TestAllMoods(t *testing.T) {
 	moods := AllMoods()
-	
+
 	if len(moods) == 0 {
 		t.Error("Expected at least one mood")
 	}
-	
+
 	// Check that all moods have expressions in default theme
 	theme := ThemeDefault
 	for _, mood := range moods {
@@ -77,7 +77,7 @@ func TestAllMoods(t *testing.T) {
 
 func TestThemeColors(t *testing.T) {
 	themes := []Theme{ThemeDefault, ThemeRainbow, ThemeCyber, ThemeRetro}
-	
+
 	for _, theme := range themes {
 		if theme.PrimaryColor == "" {
 			t.Errorf("Theme %s has empty primary color", theme.Name)
@@ -94,7 +94,7 @@ func TestThemeColors(t *testing.T) {
 func TestThemeExpressions(t *testing.T) {
 	themes := []Theme{ThemeDefault, ThemeRainbow, ThemeCyber, ThemeRetro}
 	requiredMoods := []Mood{MoodNeutral, MoodHappy, MoodSad, MoodAngry}
-	
+
 	for _, theme := range themes {
 		for _, mood := range requiredMoods {
 			expr := theme.GetExpression(mood)
@@ -111,11 +111,11 @@ func TestThemeExpressions(t *testing.T) {
 
 func TestUnknownMoodFallback(t *testing.T) {
 	theme := ThemeDefault
-	
+
 	// Test with an undefined mood
 	expr := theme.GetExpression(Mood("undefined"))
 	neutralExpr := theme.GetExpression(MoodNeutral)
-	
+
 	if expr.Eyes != neutralExpr.Eyes {
 		t.Error("Expected unknown mood to fallback to neutral expression")
 	}

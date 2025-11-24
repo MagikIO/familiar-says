@@ -89,20 +89,20 @@ func Parse(filename string) (*CowFile, error) {
 // ReplaceVariables replaces special variables in the body
 func (c *CowFile) ReplaceVariables(eyes, tongue string) []string {
 	result := make([]string, len(c.Body))
-	
+
 	for i, line := range c.Body {
 		replaced := line
 		replaced = strings.ReplaceAll(replaced, "$eyes", eyes)
 		replaced = strings.ReplaceAll(replaced, "$thoughts", c.Thoughts)
 		replaced = strings.ReplaceAll(replaced, "$tongue", tongue)
-		
+
 		// Replace any custom variables
 		for key, value := range c.Variables {
 			replaced = strings.ReplaceAll(replaced, key, value)
 		}
-		
+
 		result[i] = replaced
 	}
-	
+
 	return result
 }
