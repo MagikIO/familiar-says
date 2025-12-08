@@ -122,17 +122,38 @@ func applyFireworks(content []string) []string {
 	return result
 }
 
-// applySparkle adds sparkle effects
+// applySparkle adds sparkle effects - adds sparkles to both sides of each line consistently
 func applySparkle(content []string) []string {
 	sparkles := []string{"✨", "⭐", "🌟", "💫"}
 
 	result := []string{}
-	for _, line := range content {
-		if rng.Float64() < 0.4 {
-			sparkle := sparkles[rng.Intn(len(sparkles))]
-			line = sparkle + " " + line + " " + sparkle
-		}
+	for i, line := range content {
+		// Use consistent sparkle pattern based on line index for visual consistency
+		sparkle := sparkles[i%len(sparkles)]
+		// Add sparkle to both sides of every line to maintain alignment
+		line = sparkle + " " + line + " " + sparkle
 		result = append(result, line)
+	}
+	return result
+}
+
+// stripAnsi removes ANSI escape codes from a string
+func stripAnsi(s string) string {
+	result := ""
+	inEscape := false
+	for _, r := range s {
+		if r == '\033' {
+			inEscape = true
+			continue
+		}
+		if inEscape {
+			// ANSI escape sequences end with a letter
+			if (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') {
+				inEscape = false
+			}
+			continue
+		}
+		result += string(r)
 	}
 	return result
 }
@@ -145,8 +166,10 @@ func applyRainbow(content []string) []string {
 	colorIndex := 0
 
 	for _, line := range content {
+		// Strip any existing ANSI codes before applying rainbow
+		cleanLine := stripAnsi(line)
 		styledLine := ""
-		for _, char := range line {
+		for _, char := range cleanLine {
 			if char != ' ' && char != '\t' {
 				style := lipgloss.NewStyle().Foreground(colors[colorIndex%len(colors)])
 				styledLine += style.Render(string(char))
