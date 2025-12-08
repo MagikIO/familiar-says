@@ -66,6 +66,13 @@ sleep 2
 echo "10. Combining multiple features:"
 ./familiar-says --character robot --theme retro --mood excited --effect rainbow "All features activated!"
 echo ""
+sleep 2
+
+# Rainbow text only
+echo "11. Rainbow text effect (colors only message, not character):"
+./familiar-says --character cat --effect rainbow-text "Colorful message, plain character!"
+echo ""
+sleep 2
 
 echo "=== Demo complete! ==="
 echo ""
