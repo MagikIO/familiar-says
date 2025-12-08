@@ -53,7 +53,7 @@ func init() {
 	rootCmd.Flags().IntVarP(&bubbleWidth, "width", "w", 40, "Width of speech bubble")
 	rootCmd.Flags().BoolVarP(&animate, "animate", "a", false, "Enable typing animation")
 	rootCmd.Flags().IntVarP(&animSpeed, "speed", "s", 50, "Animation speed in milliseconds")
-	rootCmd.Flags().StringVarP(&effect, "effect", "e", "none", "Visual effect (none, confetti, fireworks, sparkle, rainbow)")
+	rootCmd.Flags().StringVarP(&effect, "effect", "e", "none", "Visual effect (none, confetti, fireworks, sparkle, rainbow, rainbow-text)")
 	rootCmd.Flags().BoolVar(&thinkMode, "think", false, "Use thought bubble instead of speech bubble")
 	rootCmd.Flags().BoolVarP(&listThemes, "list-themes", "T", false, "List available themes")
 	rootCmd.Flags().BoolVarP(&listMoods, "list-moods", "M", false, "List available moods")
@@ -149,7 +149,7 @@ func runSay(cmd *cobra.Command, args []string) error {
 		output = renderer.RenderDefault(message, bubbleStyle)
 	}
 
-	// Apply visual effects
+	// Apply visual effects (for effects that apply to full output)
 	effectType := effects.Effect(effect)
 	output = effects.Apply(output, effectType)
 
