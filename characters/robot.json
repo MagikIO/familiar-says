@@ -23,5 +23,10 @@
     "col": 4,
     "width": 1,
     "placeholder": "Y"
+  },
+  "colors": {
+    "outline": "#808080",
+    "eyes": "#00FFFF",
+    "mouth": "#00FF00"
   }
 }

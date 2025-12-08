@@ -18,5 +18,9 @@
     "col": 3,
     "width": 2,
     "placeholder": "@@"
+  },
+  "colors": {
+    "outline": "#2E8B57",
+    "eyes": "#8B4513"
   }
 }

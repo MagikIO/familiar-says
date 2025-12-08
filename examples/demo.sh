@@ -74,6 +74,27 @@ echo "11. Rainbow text effect (colors only message, not character):"
 echo ""
 sleep 2
 
+# Character color customization
+echo "12. Custom character colors (eye color):"
+./familiar-says --character dragon --eye-color fire "My eyes burn with passion!"
+echo ""
+sleep 2
+
+echo "13. Custom character colors (multiple parts):"
+./familiar-says --character cat --outline-color pink --eye-color cyan --mouth-color red "Fully customized!"
+echo ""
+sleep 2
+
+echo "14. Using hex color codes:"
+./familiar-says --character robot --outline-color "#00FF00" --eye-color "#FF00FF" "Matrix mode activated!"
+echo ""
+sleep 2
+
+echo "15. Using ANSI color numbers:"
+./familiar-says --character owl --eye-color 226 "Using ANSI 256 colors!"
+echo ""
+sleep 2
+
 echo "=== Demo complete! ==="
 echo ""
 echo "Try it yourself:"
@@ -81,3 +102,8 @@ echo "  ./familiar-says --help"
 echo "  ./familiar-says --list-themes"
 echo "  ./familiar-says --list-moods"
 echo "  ./familiar-says --list-effects"
+echo "  ./familiar-says --list-colors"
+echo ""
+echo "Character color customization:"
+echo "  ./familiar-says --character cat --eye-color green \"Green eyes!\""
+echo "  ./familiar-says --character dragon --outline-color fire --eye-color gold \"Fiery dragon!\""

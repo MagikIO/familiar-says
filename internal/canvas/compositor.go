@@ -22,12 +22,13 @@ const (
 
 // CompositorConfig holds configuration for the compositor.
 type CompositorConfig struct {
-	BubbleWidth  int
-	BubbleStyle  BubbleStyle
-	Layout       Layout
-	BubbleColor  lipgloss.Style
-	CharColor    lipgloss.Style
-	ConnectorLen int // Number of connector lines (default 2)
+	BubbleWidth   int
+	BubbleStyle   BubbleStyle
+	Layout        Layout
+	BubbleColor   lipgloss.Style
+	CharColor     lipgloss.Style    // Fallback color for character (deprecated in favor of CharColors)
+	CharColors    *CharacterColors  // Per-part colors for character (outline, eyes, mouth)
+	ConnectorLen  int               // Number of connector lines (default 2)
 }
 
 // DefaultConfig returns a default compositor configuration.
@@ -61,10 +62,15 @@ func Compose(text string, char *Character, eyes, mouth string, config Compositor
 	}
 	connectorCanvas := generateConnector(connectorChar, config.ConnectorLen, char.GetAnchorX(), config.CharColor)
 
-	// 3. Render the character with expressions
-	charCanvas := char.ToCanvas(eyes, mouth, config.CharColor)
+	// 3. Resolve character styles
+	// Merge character's default colors with config overrides
+	mergedColors := MergeColors(char.Colors, config.CharColors)
+	charStyles := ResolveCharacterStyles(mergedColors, config.CharColor)
 
-	// 4. Compose based on layout
+	// 4. Render the character with expressions and per-part styling
+	charCanvas := char.ToCanvasStyled(eyes, mouth, charStyles)
+
+	// 5. Compose based on layout
 	switch config.Layout {
 	case LayoutHorizontal:
 		// Character beside bubble

@@ -20,5 +20,8 @@
     "col": 4,
     "width": 1,
     "placeholder": "Y"
+  },
+  "colors": {
+    "eyes": "#8B4513"
   }
 }

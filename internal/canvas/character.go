@@ -26,12 +26,13 @@ type Anchor struct {
 
 // Character represents a familiar/animal character with ASCII art and expression slots.
 type Character struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Art         []string `json:"art"`             // Raw ASCII art lines
-	Anchor      Anchor   `json:"anchor"`          // Where the thought/speech connector joins
-	Eyes        *Slot    `json:"eyes,omitempty"`  // Where to insert eyes (nil if no eyes)
-	Mouth       *Slot    `json:"mouth,omitempty"` // Where to insert mouth/tongue (nil if none)
+	Name        string           `json:"name"`
+	Description string           `json:"description,omitempty"`
+	Art         []string         `json:"art"`             // Raw ASCII art lines
+	Anchor      Anchor           `json:"anchor"`          // Where the thought/speech connector joins
+	Eyes        *Slot            `json:"eyes,omitempty"`  // Where to insert eyes (nil if no eyes)
+	Mouth       *Slot            `json:"mouth,omitempty"` // Where to insert mouth/tongue (nil if none)
+	Colors      *CharacterColors `json:"colors,omitempty"` // Default colors for character parts
 }
 
 // LoadCharacter loads a character from a JSON file.
@@ -58,26 +59,114 @@ func LoadCharacter(filename string) (*Character, error) {
 }
 
 // ToCanvas renders the character with expressions filled in.
+// Deprecated: Use ToCanvasStyled for per-part coloring support.
 func (ch *Character) ToCanvas(eyes, mouth string, style lipgloss.Style) *Canvas {
+	styles := CharacterStyles{
+		Outline: style,
+		Eyes:    style,
+		Mouth:   style,
+	}
+	return ch.ToCanvasStyled(eyes, mouth, styles)
+}
+
+// ToCanvasStyled renders the character with expressions and per-part styling.
+// This allows different colors for the outline, eyes, and mouth.
+func (ch *Character) ToCanvasStyled(eyes, mouth string, styles CharacterStyles) *Canvas {
 	if len(ch.Art) == 0 {
 		return NewCanvas(1, 1)
 	}
+
+	// Calculate dimensions
+	maxWidth := 0
+	for _, line := range ch.Art {
+		w := StringWidth(line)
+		if w > maxWidth {
+			maxWidth = w
+		}
+	}
+	if maxWidth == 0 {
+		maxWidth = 1
+	}
+
+	canvas := NewCanvas(maxWidth, len(ch.Art))
+
+	// Track which cells are eyes or mouth for special styling
+	eyeCells := make(map[int]map[int]bool)  // line -> col -> isEye
+	mouthCells := make(map[int]map[int]bool) // line -> col -> isMouth
 
 	// Make a copy of art lines to modify
 	lines := make([]string, len(ch.Art))
 	copy(lines, ch.Art)
 
-	// Replace eye placeholder if defined
+	// Replace eye placeholder and track positions
 	if ch.Eyes != nil && ch.Eyes.Line < len(lines) {
-		lines[ch.Eyes.Line] = replaceSlot(lines[ch.Eyes.Line], ch.Eyes, eyes)
+		origLine := lines[ch.Eyes.Line]
+		newLine := replaceSlot(origLine, ch.Eyes, eyes)
+		lines[ch.Eyes.Line] = newLine
+
+		// Mark eye cells for special styling
+		eyeCells[ch.Eyes.Line] = make(map[int]bool)
+		// Find where the placeholder was and mark new content positions
+		placeholderIdx := strings.Index(origLine, ch.Eyes.Placeholder)
+		if placeholderIdx >= 0 {
+			// Calculate centered position
+			valueWidth := StringWidth(eyes)
+			slotWidth := ch.Eyes.Width
+			if slotWidth < valueWidth {
+				slotWidth = valueWidth
+			}
+			padding := slotWidth - valueWidth
+			leftPad := padding / 2
+
+			for i := 0; i < slotWidth; i++ {
+				eyeCells[ch.Eyes.Line][placeholderIdx+i] = true
+			}
+			_ = leftPad // Used in calculation above
+		}
 	}
 
-	// Replace mouth placeholder if defined
+	// Replace mouth placeholder and track positions
 	if ch.Mouth != nil && ch.Mouth.Line < len(lines) {
-		lines[ch.Mouth.Line] = replaceSlot(lines[ch.Mouth.Line], ch.Mouth, mouth)
+		origLine := lines[ch.Mouth.Line]
+		newLine := replaceSlot(origLine, ch.Mouth, mouth)
+		lines[ch.Mouth.Line] = newLine
+
+		// Mark mouth cells for special styling
+		mouthCells[ch.Mouth.Line] = make(map[int]bool)
+		placeholderIdx := strings.Index(origLine, ch.Mouth.Placeholder)
+		if placeholderIdx >= 0 {
+			valueWidth := StringWidth(mouth)
+			slotWidth := ch.Mouth.Width
+			if slotWidth < valueWidth {
+				slotWidth = valueWidth
+			}
+
+			for i := 0; i < slotWidth; i++ {
+				mouthCells[ch.Mouth.Line][placeholderIdx+i] = true
+			}
+		}
 	}
 
-	return FromLines(lines, style)
+	// Draw each line with appropriate styling
+	for y, line := range lines {
+		col := 0
+		for _, r := range line {
+			// Determine which style to use for this cell
+			var cellStyle lipgloss.Style
+			if eyeMap, ok := eyeCells[y]; ok && eyeMap[col] {
+				cellStyle = styles.Eyes
+			} else if mouthMap, ok := mouthCells[y]; ok && mouthMap[col] {
+				cellStyle = styles.Mouth
+			} else {
+				cellStyle = styles.Outline
+			}
+
+			canvas.Set(col, y, r, cellStyle)
+			col++
+		}
+	}
+
+	return canvas
 }
 
 // replaceSlot replaces a placeholder in a line with the given value, centered within the slot width.

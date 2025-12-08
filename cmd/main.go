@@ -9,6 +9,7 @@ import (
 
 	"github.com/MagikIO/familiar-says/internal/animation"
 	"github.com/MagikIO/familiar-says/internal/bubble"
+	"github.com/MagikIO/familiar-says/internal/canvas"
 	"github.com/MagikIO/familiar-says/internal/character"
 	"github.com/MagikIO/familiar-says/internal/effects"
 	"github.com/MagikIO/familiar-says/internal/personality"
@@ -30,6 +31,12 @@ var (
 	listEffects    bool
 	listCharacters bool
 	multipanel     bool
+
+	// Character color flags
+	outlineColor string
+	eyeColor     string
+	mouthColor   string
+	listColors   bool
 )
 
 var rootCmd = &cobra.Command{
@@ -60,6 +67,12 @@ func init() {
 	rootCmd.Flags().BoolVarP(&listEffects, "list-effects", "E", false, "List available effects")
 	rootCmd.Flags().BoolVarP(&listCharacters, "list-characters", "C", false, "List available characters")
 	rootCmd.Flags().BoolVarP(&multipanel, "multipanel", "p", false, "Enable multi-panel mode (experimental)")
+
+	// Character color flags
+	rootCmd.Flags().StringVar(&outlineColor, "outline-color", "", "Color for character outline/body (hex, ANSI, or name)")
+	rootCmd.Flags().StringVar(&eyeColor, "eye-color", "", "Color for character eyes (hex, ANSI, or name)")
+	rootCmd.Flags().StringVar(&mouthColor, "mouth-color", "", "Color for character mouth (hex, ANSI, or name)")
+	rootCmd.Flags().BoolVar(&listColors, "list-colors", false, "List available named colors")
 }
 
 // Execute runs the root command
@@ -101,6 +114,19 @@ func runSay(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if listColors {
+		fmt.Println("Available named colors:")
+		fmt.Println("  Basic: black, white, red, green, blue, yellow, cyan, magenta")
+		fmt.Println("  Extended: orange, pink, purple, violet, brown, gray, gold, silver")
+		fmt.Println("  More: lime, aqua, navy, teal, olive, maroon, coral, salmon")
+		fmt.Println("  Themed: fire, ice, forest, midnight, sunset, ocean, lavender, mint")
+		fmt.Println("")
+		fmt.Println("You can also use:")
+		fmt.Println("  Hex codes: #FF6B6B, #F6B, FF6B6B")
+		fmt.Println("  ANSI 256:  196, 82, 46")
+		return nil
+	}
+
 	// Get message
 	var message string
 	if len(args) > 0 {
@@ -130,6 +156,15 @@ func runSay(cmd *cobra.Command, args []string) error {
 
 	// Create renderer
 	renderer := character.NewRenderer(theme, mood, bubbleWidth)
+
+	// Apply character color overrides from CLI flags
+	if outlineColor != "" || eyeColor != "" || mouthColor != "" {
+		renderer.CharColors = &canvas.CharacterColors{
+			Outline: outlineColor,
+			Eyes:    eyeColor,
+			Mouth:   mouthColor,
+		}
+	}
 
 	// Determine bubble style
 	bubbleStyle := bubble.StyleSay

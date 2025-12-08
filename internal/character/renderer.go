@@ -17,6 +17,7 @@ type Renderer struct {
 	Theme       personality.Theme
 	Mood        personality.Mood
 	BubbleWidth int
+	CharColors  *canvas.CharacterColors // Optional per-part color overrides
 }
 
 // NewRenderer creates a new character renderer.
@@ -43,6 +44,7 @@ func (r *Renderer) Render(text string, char *canvas.Character, style bubble.Styl
 		Layout:       canvas.LayoutVertical,
 		BubbleColor:  r.Theme.BubbleStyle,
 		CharColor:    r.Theme.CharacterStyle,
+		CharColors:   r.CharColors,
 		ConnectorLen: 2,
 	}
 
@@ -143,6 +145,7 @@ func (r *Renderer) RenderMultiPanel(panels []Panel) []string {
 		Layout:       canvas.LayoutVertical,
 		BubbleColor:  r.Theme.BubbleStyle,
 		CharColor:    r.Theme.CharacterStyle,
+		CharColors:   r.CharColors,
 		ConnectorLen: 2,
 	}
 

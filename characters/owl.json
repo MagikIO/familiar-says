@@ -13,5 +13,8 @@
     "col": 2,
     "width": 2,
     "placeholder": "@@"
+  },
+  "colors": {
+    "eyes": "#FFD700"
   }
 }

@@ -16,5 +16,8 @@
     "col": 3,
     "width": 2,
     "placeholder": "@@"
+  },
+  "colors": {
+    "eyes": "#4169E1"
   }
 }

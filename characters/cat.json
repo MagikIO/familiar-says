@@ -19,5 +19,9 @@
     "col": 4,
     "width": 1,
     "placeholder": "Y"
+  },
+  "colors": {
+    "eyes": "#7CFC00",
+    "mouth": "#FF69B4"
   }
 }

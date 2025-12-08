@@ -20,5 +20,9 @@
     "col": 4,
     "width": 1,
     "placeholder": "Y"
+  },
+  "colors": {
+    "outline": "#4B0082",
+    "eyes": "#FF0000"
   }
 }
