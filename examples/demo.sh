@@ -4,9 +4,10 @@
 echo "=== Welcome to familiar-says demo ==="
 echo ""
 
-# Build first
+# Build first (run from project root)
 echo "Building familiar-says..."
-make build > /dev/null 2>&1
+cd "$(dirname "$0")/.." || exit 1
+make build
 echo ""
 
 # Basic usage
@@ -29,17 +30,17 @@ sleep 2
 
 # Different characters
 echo "4. Using the cat character:"
-./familiar-says --character characters/cat.cow "Meow!"
+./familiar-says --character cat "Meow!"
 echo ""
 sleep 2
 
 echo "5. Using the dragon character:"
-./familiar-says --character characters/dragon.cow --mood excited "Rawr!"
+./familiar-says --character dragon --mood excited "Rawr!"
 echo ""
 sleep 2
 
 echo "6. Using the penguin character:"
-./familiar-says --character characters/penguin.cow "Tux says hi!"
+./familiar-says --character penguin "Tux says hi!"
 echo ""
 sleep 2
 
@@ -63,7 +64,7 @@ sleep 2
 
 # All features combined
 echo "10. Combining multiple features:"
-./familiar-says --character characters/robot.cow --theme retro --mood excited --effect rainbow "All features activated!"
+./familiar-says --character robot --theme retro --mood excited --effect rainbow "All features activated!"
 echo ""
 
 echo "=== Demo complete! ==="
