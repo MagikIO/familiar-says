@@ -237,54 +237,95 @@ func applyRainbowTextOnly(content []string) []string {
 	colors := []lipgloss.Color{"196", "208", "226", "46", "51", "21", "93"}
 	result := []string{}
 	colorIndex := 0
+	inBubble := false
+	bubbleEnded := false
 
 	for _, line := range content {
 		// Strip any existing ANSI codes
 		cleanLine := stripAnsi(line)
-		
-		// Check if this is a bubble content line (starts with < | / \ after optional spaces)
-		trimmed := trimLeftSpaces(cleanLine)
-		
-		if len(trimmed) > 0 && (trimmed[0] == '<' || trimmed[0] == '|' || trimmed[0] == '/' || trimmed[0] == '\\' ||
-			trimmed[0] == '(' || trimmed[0] == ')') {
-			// This is a bubble line - color the content between the borders
-			styledLine := ""
-			inContent := false
-			
-			for i, char := range cleanLine {
-				// Detect bubble border characters
-				isBorder := char == '<' || char == '>' || char == '|' || char == '/' || char == '\\' ||
-					char == '(' || char == ')' || char == '_' || char == '-'
-				
-				if isBorder {
-					// Check if we're entering or leaving content area
-					if char == '<' || char == '/' || char == '|' || char == '(' {
+		trimmed := trimSpaces(cleanLine) // trim both leading and trailing
+
+		// Detect bubble boundaries
+		// Top border: line of underscores (starts the bubble)
+		if !inBubble && !bubbleEnded && len(trimmed) > 0 && isAllChar(trimmed, '_') {
+			inBubble = true
+			result = append(result, cleanLine)
+			continue
+		}
+
+		// Bottom border: line of dashes (ends the bubble)
+		if inBubble && len(trimmed) > 0 && isAllChar(trimmed, '-') {
+			inBubble = false
+			bubbleEnded = true
+			result = append(result, cleanLine)
+			continue
+		}
+
+		// If we're inside the bubble and this is a content line
+		if inBubble && len(trimmed) > 0 {
+			firstChar := trimmed[0]
+			// Bubble content lines start with < / | or ( for think bubbles
+			if firstChar == '<' || firstChar == '/' || firstChar == '|' || firstChar == '(' {
+				styledLine := ""
+				inContent := false
+
+				for i, char := range cleanLine {
+					// Detect opening border characters
+					if char == '<' || char == '(' {
 						inContent = true
-					} else if char == '>' || char == '\\' || char == ')' {
-						// Check if this is the closing border (at or near end of content)
+						styledLine += string(char)
+					} else if char == '/' || char == '|' {
+						// / at start opens, \ at end closes; | can be either
+						if !inContent {
+							inContent = true
+						}
+						styledLine += string(char)
+					} else if char == '>' || char == ')' {
+						// Closing - check if it's the end border
 						remainder := cleanLine[i:]
 						if isClosingBorder(remainder) {
 							inContent = false
 						}
+						styledLine += string(char)
+					} else if char == '\\' {
+						// \ at end of line is closing border
+						remainder := cleanLine[i:]
+						if isClosingBorder(remainder) {
+							inContent = false
+						}
+						styledLine += string(char)
+					} else if inContent && char != ' ' && char != '\t' {
+						// Color the content character
+						style := lipgloss.NewStyle().Foreground(colors[colorIndex%len(colors)])
+						styledLine += style.Render(string(char))
+						colorIndex++
+					} else {
+						styledLine += string(char)
 					}
-					styledLine += string(char)
-				} else if inContent && char != ' ' && char != '\t' {
-					// Color the content character
-					style := lipgloss.NewStyle().Foreground(colors[colorIndex%len(colors)])
-					styledLine += style.Render(string(char))
-					colorIndex++
-				} else {
-					styledLine += string(char)
 				}
+				result = append(result, styledLine)
+				continue
 			}
-			result = append(result, styledLine)
-		} else {
-			// Not a bubble line - keep as-is (borders, character, connectors)
-			result = append(result, cleanLine)
 		}
+
+		// Not a bubble content line - keep as-is
+		result = append(result, cleanLine)
 	}
 
 	return result
+}
+
+// isAllChar checks if a string consists only of a specific character
+func isAllChar(s string, c rune) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, r := range s {
+		if r != c {
+			return false
+		}
+	}
+	return true
 }
 
 // trimLeftSpaces removes leading spaces from a string
@@ -295,6 +336,30 @@ func trimLeftSpaces(s string) string {
 		}
 	}
 	return ""
+}
+
+// trimSpaces removes leading and trailing spaces from a string
+func trimSpaces(s string) string {
+	// Trim leading
+	start := 0
+	for i, r := range s {
+		if r != ' ' && r != '\t' {
+			start = i
+			break
+		}
+	}
+	// Trim trailing
+	end := len(s)
+	for i := len(s) - 1; i >= start; i-- {
+		if s[i] != ' ' && s[i] != '\t' {
+			end = i + 1
+			break
+		}
+	}
+	if start >= end {
+		return ""
+	}
+	return s[start:end]
 }
 
 // isClosingBorder checks if the remainder of the line is just the closing border
