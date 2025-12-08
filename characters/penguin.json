@@ -1,0 +1,20 @@
+{
+  "name": "penguin",
+  "description": "A cute Linux penguin familiar",
+  "art": [
+    "   .--.   ",
+    "  |@@ |  ",
+    "  |:_/|  ",
+    "  //  \\\\  ",
+    " (|    |) ",
+    " /'\\__/'\\  ",
+    " \\_)=(_/  "
+  ],
+  "anchor": {"x": 5, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 3,
+    "width": 2,
+    "placeholder": "@@"
+  }
+}

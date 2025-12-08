@@ -1,0 +1,16 @@
+{
+  "name": "bunny",
+  "description": "An adorable bunny familiar",
+  "art": [
+    " (\\(\\  ",
+    " ( @@) ",
+    " c(\")(\")"
+  ],
+  "anchor": {"x": 3, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 3,
+    "width": 2,
+    "placeholder": "@@"
+  }
+}

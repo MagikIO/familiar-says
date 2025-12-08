@@ -1,0 +1,17 @@
+{
+  "name": "owl",
+  "description": "A wise owl familiar",
+  "art": [
+    "  ,_,  ",
+    " (@@)  ",
+    " /)_)  ",
+    "  \"\"   "
+  ],
+  "anchor": {"x": 3, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 2,
+    "width": 2,
+    "placeholder": "@@"
+  }
+}

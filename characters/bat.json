@@ -1,0 +1,24 @@
+{
+  "name": "bat",
+  "description": "A spooky bat familiar",
+  "art": [
+    " /\\   /\\ ",
+    "{  @@@  }",
+    " \\  Y  / ",
+    "  \\   /  ",
+    "   \\_/   "
+  ],
+  "anchor": {"x": 4, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 4,
+    "width": 3,
+    "placeholder": "@@@"
+  },
+  "mouth": {
+    "line": 2,
+    "col": 4,
+    "width": 1,
+    "placeholder": "Y"
+  }
+}

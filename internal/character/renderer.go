@@ -1,23 +1,25 @@
+// Package character provides the main character rendering interface using the canvas system.
 package character
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/MagikIO/familiar-says/internal/bubble"
+	"github.com/MagikIO/familiar-says/internal/canvas"
 	"github.com/MagikIO/familiar-says/internal/personality"
-	"github.com/MagikIO/familiar-says/pkg/cowparser"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Renderer handles character rendering
+// Renderer handles character rendering using the canvas-based composition system.
 type Renderer struct {
 	Theme       personality.Theme
 	Mood        personality.Mood
 	BubbleWidth int
 }
 
-// NewRenderer creates a new character renderer
+// NewRenderer creates a new character renderer.
 func NewRenderer(theme personality.Theme, mood personality.Mood, width int) *Renderer {
 	if width <= 0 {
 		width = 40
@@ -29,143 +31,133 @@ func NewRenderer(theme personality.Theme, mood personality.Mood, width int) *Ren
 	}
 }
 
-// Render renders a character with a speech bubble
-func (r *Renderer) Render(text string, cow *cowparser.CowFile, style bubble.Style) []string {
+// Render renders a character with a speech bubble using the canvas system.
+func (r *Renderer) Render(text string, char *canvas.Character, style bubble.Style) []string {
 	// Get expression for mood
 	expr := r.Theme.GetExpression(r.Mood)
 
-	// Create speech bubble
-	bubbleObj := bubble.New(text, r.BubbleWidth, style)
-	bubbleLines := bubbleObj.Render()
-
-	// Apply styling to bubble
-	styledBubble := []string{}
-	for _, line := range bubbleLines {
-		styledBubble = append(styledBubble, r.Theme.BubbleStyle.Render(line))
+	// Configure the compositor
+	config := canvas.CompositorConfig{
+		BubbleWidth:  r.BubbleWidth,
+		BubbleStyle:  style.ToCanvasStyle(),
+		Layout:       canvas.LayoutVertical,
+		BubbleColor:  r.Theme.BubbleStyle,
+		CharColor:    r.Theme.CharacterStyle,
+		ConnectorLen: 2,
 	}
 
-	// Get character body with replaced variables
-	characterLines := cow.ReplaceVariables(expr.Eyes, expr.Tongue)
+	// Compose the output
+	result := canvas.Compose(text, char, expr.Eyes, expr.Tongue, config)
 
-	// Apply styling to character
-	styledCharacter := []string{}
-	for _, line := range characterLines {
-		if line != "" {
-			styledCharacter = append(styledCharacter, r.Theme.CharacterStyle.Render(line))
+	return result.Render()
+}
+
+// RenderDefault renders with the default character.
+func (r *Renderer) RenderDefault(text string, style bubble.Style) []string {
+	char, _ := canvas.GetBuiltinCharacter("default")
+	return r.Render(text, char, style)
+}
+
+// RenderByName renders with a character by name (looks up builtin or loads from file).
+func (r *Renderer) RenderByName(text string, name string, style bubble.Style) ([]string, error) {
+	char, err := LoadCharacter(name)
+	if err != nil {
+		return nil, err
+	}
+	return r.Render(text, char, style), nil
+}
+
+// LoadCharacter loads a character by name. It first checks builtin characters,
+// then looks for a JSON file in common locations.
+func LoadCharacter(name string) (*canvas.Character, error) {
+	// Normalize the name
+	name = strings.ToLower(strings.TrimSpace(name))
+
+	// Check if it's a builtin character
+	if char, ok := canvas.GetBuiltinCharacter(name); ok {
+		return char, nil
+	}
+
+	// Check if it's a file path
+	if strings.HasSuffix(name, ".json") {
+		return canvas.LoadCharacter(name)
+	}
+
+	// Try to find a JSON file
+	searchPaths := []string{
+		name + ".json",
+		"characters/" + name + ".json",
+		filepath.Join("characters", name+".json"),
+	}
+
+	for _, path := range searchPaths {
+		char, err := canvas.LoadCharacter(path)
+		if err == nil {
+			return char, nil
 		}
 	}
 
-	// Combine bubble and character
-	result := append(styledBubble, styledCharacter...)
-	return result
+	return nil, fmt.Errorf("character not found: %s", name)
 }
 
-// RenderDefault renders with a default built-in character
-func (r *Renderer) RenderDefault(text string, style bubble.Style) []string {
-	// Get expression for mood
-	expr := r.Theme.GetExpression(r.Mood)
-
-	// Create speech bubble
-	bubbleObj := bubble.New(text, r.BubbleWidth, style)
-	bubbleLines := bubbleObj.Render()
-
-	// Apply styling to bubble
-	styledBubble := []string{}
-	for _, line := range bubbleLines {
-		styledBubble = append(styledBubble, r.Theme.BubbleStyle.Render(line))
-	}
-
-	// Create default character
-	thinkChar := bubbleObj.ThinkChar
-	characterLines := []string{
-		"        " + thinkChar,
-		"         " + thinkChar,
-		"          (",
-		"           ) " + expr.Eyes,
-		"          (  ----",
-		"           " + expr.Tongue,
-	}
-
-	// Apply styling to character
-	styledCharacter := []string{}
-	for _, line := range characterLines {
-		styledCharacter = append(styledCharacter, r.Theme.CharacterStyle.Render(line))
-	}
-
-	// Combine bubble and character
-	result := append(styledBubble, styledCharacter...)
-	return result
+// ListCharacters returns all available character names.
+func ListCharacters() []string {
+	return canvas.ListBuiltinCharacters()
 }
 
-// RenderMultiPanel renders multiple characters in panels
+// RenderMultiPanel renders multiple characters side by side.
 func (r *Renderer) RenderMultiPanel(panels []Panel) []string {
 	if len(panels) == 0 {
 		return []string{}
 	}
 
-	// Render each panel
-	renderedPanels := [][]string{}
-	maxHeight := 0
+	// Get expression for mood
+	expr := r.Theme.GetExpression(r.Mood)
 
-	for _, panel := range panels {
-		var lines []string
-		if panel.Cow != nil {
-			lines = r.Render(panel.Text, panel.Cow, panel.Style)
+	// Convert to canvas panel configs
+	canvasPanels := make([]canvas.PanelConfig, len(panels))
+	for i, panel := range panels {
+		var char *canvas.Character
+		if panel.CharacterName != "" {
+			var err error
+			char, err = LoadCharacter(panel.CharacterName)
+			if err != nil {
+				char, _ = canvas.GetBuiltinCharacter("default")
+			}
 		} else {
-			lines = r.RenderDefault(panel.Text, panel.Style)
+			char, _ = canvas.GetBuiltinCharacter("default")
 		}
-		renderedPanels = append(renderedPanels, lines)
-		if len(lines) > maxHeight {
-			maxHeight = len(lines)
+
+		canvasPanels[i] = canvas.PanelConfig{
+			Text:      panel.Text,
+			Character: char,
+			Eyes:      expr.Eyes,
+			Mouth:     expr.Tongue,
 		}
 	}
 
-	// Combine panels side by side
-	result := []string{}
-	for i := 0; i < maxHeight; i++ {
-		line := ""
-		for j, panel := range renderedPanels {
-			if i < len(panel) {
-				line += panel[i]
-			} else {
-				line += strings.Repeat(" ", r.BubbleWidth+10)
-			}
-			if j < len(renderedPanels)-1 {
-				line += "  " // Spacing between panels
-			}
-		}
-		result = append(result, line)
+	// Configure the compositor
+	config := canvas.CompositorConfig{
+		BubbleWidth:  r.BubbleWidth,
+		BubbleStyle:  canvas.BubbleStyleSay,
+		Layout:       canvas.LayoutVertical,
+		BubbleColor:  r.Theme.BubbleStyle,
+		CharColor:    r.Theme.CharacterStyle,
+		ConnectorLen: 2,
 	}
 
-	return result
+	result := canvas.ComposeMultiPanel(canvasPanels, config)
+	return result.Render()
 }
 
-// Panel represents a single panel in a multi-panel layout
+// Panel represents a single panel in a multi-panel layout.
 type Panel struct {
-	Text  string
-	Cow   *cowparser.CowFile
-	Style bubble.Style
+	Text          string
+	CharacterName string
+	Style         bubble.Style
 }
 
-// GetDefaultCharacter returns a default character definition
-func GetDefaultCharacter() *cowparser.CowFile {
-	return &cowparser.CowFile{
-		Eyes:     "oo",
-		Tongue:   "  ",
-		Thoughts: "\\",
-		Body: []string{
-			"        $thoughts",
-			"         $thoughts",
-			"          (",
-			"           ) $eyes",
-			"          (  ----",
-			"           $tongue",
-		},
-		Variables: make(map[string]string),
-	}
-}
-
-// RenderInfo displays information about the current theme and mood
+// RenderInfo displays information about the current theme and mood.
 func (r *Renderer) RenderInfo() string {
 	expr := r.Theme.GetExpression(r.Mood)
 
@@ -182,4 +174,16 @@ func (r *Renderer) RenderInfo() string {
 		Padding(1, 2)
 
 	return style.Render(info)
+}
+
+// GetCharacterPreview returns a preview of a character without a bubble.
+func GetCharacterPreview(name string, theme personality.Theme, mood personality.Mood) ([]string, error) {
+	char, err := LoadCharacter(name)
+	if err != nil {
+		return nil, err
+	}
+
+	expr := theme.GetExpression(mood)
+	charCanvas := char.ToCanvas(expr.Eyes, expr.Tongue, theme.CharacterStyle)
+	return charCanvas.Render(), nil
 }

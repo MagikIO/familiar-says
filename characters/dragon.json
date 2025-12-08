@@ -1,0 +1,31 @@
+{
+  "name": "dragon",
+  "description": "A mighty dragon familiar",
+  "art": [
+    "      __/\\__ ",
+    "     /  @@  \\",
+    "    / \\    / \\",
+    "   /   \\  /   \\",
+    "  /     \\/     \\",
+    "  \\   /\\  /\\   /",
+    "   \\_/  \\/  \\_/ ",
+    "    (   YY   )  ",
+    "     \\      /   ",
+    "      \\    /    ",
+    "       \\  /     ",
+    "        \\/      "
+  ],
+  "anchor": {"x": 6, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 6,
+    "width": 2,
+    "placeholder": "@@"
+  },
+  "mouth": {
+    "line": 7,
+    "col": 5,
+    "width": 2,
+    "placeholder": "YY"
+  }
+}

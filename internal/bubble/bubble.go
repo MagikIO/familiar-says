@@ -3,6 +3,9 @@ package bubble
 import (
 	"strings"
 	"unicode/utf8"
+
+	"github.com/MagikIO/familiar-says/internal/canvas"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Style represents the bubble style
@@ -114,4 +117,18 @@ func (b *Bubble) padRight(s string, width int) string {
 		return s
 	}
 	return s + strings.Repeat(" ", width-l)
+}
+
+// RenderToCanvas renders the bubble to a Canvas for composition.
+func (b *Bubble) RenderToCanvas(style lipgloss.Style) *canvas.Canvas {
+	lines := b.Render()
+	return canvas.FromLines(lines, style)
+}
+
+// ToCanvasStyle converts bubble.Style to canvas.BubbleStyle
+func (s Style) ToCanvasStyle() canvas.BubbleStyle {
+	if s == StyleThink {
+		return canvas.BubbleStyleThink
+	}
+	return canvas.BubbleStyleSay
 }

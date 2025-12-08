@@ -12,24 +12,24 @@ import (
 	"github.com/MagikIO/familiar-says/internal/character"
 	"github.com/MagikIO/familiar-says/internal/effects"
 	"github.com/MagikIO/familiar-says/internal/personality"
-	"github.com/MagikIO/familiar-says/pkg/cowparser"
 	"github.com/spf13/cobra"
 )
 
 var (
 	// Flags
-	themeName     string
-	moodName      string
-	characterFile string
-	bubbleWidth   int
-	animate       bool
-	animSpeed     int
-	effect        string
-	thinkMode     bool
-	listThemes    bool
-	listMoods     bool
-	listEffects   bool
-	multipanel    bool
+	themeName      string
+	moodName       string
+	characterName  string
+	bubbleWidth    int
+	animate        bool
+	animSpeed      int
+	effect         string
+	thinkMode      bool
+	listThemes     bool
+	listMoods      bool
+	listEffects    bool
+	listCharacters bool
+	multipanel     bool
 )
 
 var rootCmd = &cobra.Command{
@@ -40,7 +40,7 @@ var rootCmd = &cobra.Command{
 - Mood-based expressions
 - Typing animations
 - Dynamic colors and visual effects
-- Support for .cow character files
+- Built-in character familiars (cat, owl, dragon, etc.)
 - Multi-panel layouts`,
 	RunE: runSay,
 }
@@ -49,7 +49,7 @@ func init() {
 	// Add flags
 	rootCmd.Flags().StringVarP(&themeName, "theme", "t", "default", "Theme to use (default, rainbow, cyber, retro)")
 	rootCmd.Flags().StringVarP(&moodName, "mood", "m", "neutral", "Mood expression (happy, sad, angry, surprised, bored, excited, neutral, sleepy)")
-	rootCmd.Flags().StringVarP(&characterFile, "character", "c", "", "Path to .cow character file")
+	rootCmd.Flags().StringVarP(&characterName, "character", "c", "", "Character to use (cat, owl, fox, bunny, penguin, dragon, robot, bat, turtle, default)")
 	rootCmd.Flags().IntVarP(&bubbleWidth, "width", "w", 40, "Width of speech bubble")
 	rootCmd.Flags().BoolVarP(&animate, "animate", "a", false, "Enable typing animation")
 	rootCmd.Flags().IntVarP(&animSpeed, "speed", "s", 50, "Animation speed in milliseconds")
@@ -58,6 +58,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&listThemes, "list-themes", "T", false, "List available themes")
 	rootCmd.Flags().BoolVarP(&listMoods, "list-moods", "M", false, "List available moods")
 	rootCmd.Flags().BoolVarP(&listEffects, "list-effects", "E", false, "List available effects")
+	rootCmd.Flags().BoolVarP(&listCharacters, "list-characters", "C", false, "List available characters")
 	rootCmd.Flags().BoolVarP(&multipanel, "multipanel", "p", false, "Enable multi-panel mode (experimental)")
 }
 
@@ -88,6 +89,14 @@ func runSay(cmd *cobra.Command, args []string) error {
 		fmt.Println("Available effects:")
 		for _, e := range effects.AllEffects() {
 			fmt.Printf("  - %s: %s\n", e, effects.GetEffectDescription(e))
+		}
+		return nil
+	}
+
+	if listCharacters {
+		fmt.Println("Available characters:")
+		for _, c := range character.ListCharacters() {
+			fmt.Printf("  - %s\n", c)
 		}
 		return nil
 	}
@@ -128,14 +137,14 @@ func runSay(cmd *cobra.Command, args []string) error {
 		bubbleStyle = bubble.StyleThink
 	}
 
-	// Load character if specified
+	// Render with character
 	var output []string
-	if characterFile != "" {
-		cow, err := cowparser.Parse(characterFile)
+	var err error
+	if characterName != "" {
+		output, err = renderer.RenderByName(message, characterName, bubbleStyle)
 		if err != nil {
-			return fmt.Errorf("failed to parse character file: %w", err)
+			return fmt.Errorf("failed to load character: %w", err)
 		}
-		output = renderer.Render(message, cow, bubbleStyle)
 	} else {
 		output = renderer.RenderDefault(message, bubbleStyle)
 	}

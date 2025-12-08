@@ -1,0 +1,24 @@
+{
+  "name": "default",
+  "description": "The classic cow familiar",
+  "art": [
+    "   ^__^        ",
+    "   (@@)\\_______",
+    "   (__)\\       )\\/\\",
+    "    Y  ||----w |",
+    "       ||     ||"
+  ],
+  "anchor": {"x": 4, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 4,
+    "width": 2,
+    "placeholder": "@@"
+  },
+  "mouth": {
+    "line": 3,
+    "col": 4,
+    "width": 1,
+    "placeholder": "Y"
+  }
+}

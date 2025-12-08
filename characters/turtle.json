@@ -1,0 +1,22 @@
+{
+  "name": "turtle",
+  "description": "A slow and steady turtle familiar",
+  "art": [
+    "    _____    ",
+    "  .'     '.  ",
+    " / @@      \\ ",
+    "|   ____    |",
+    "|  /    \\   |",
+    " \\ \\____/  / ",
+    "  '._____.'  ",
+    "    |   |    ",
+    "   _|   |_   "
+  ],
+  "anchor": {"x": 6, "y": 0},
+  "eyes": {
+    "line": 2,
+    "col": 3,
+    "width": 2,
+    "placeholder": "@@"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "cat",
+  "description": "A cute cat familiar",
+  "art": [
+    "  /\\_/\\  ",
+    " ( @@ ) ",
+    " =( Y )=",
+    "   ^ ^  "
+  ],
+  "anchor": {"x": 4, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 3,
+    "width": 2,
+    "placeholder": "@@"
+  },
+  "mouth": {
+    "line": 2,
+    "col": 4,
+    "width": 1,
+    "placeholder": "Y"
+  }
+}

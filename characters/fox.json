@@ -1,0 +1,24 @@
+{
+  "name": "fox",
+  "description": "A clever fox familiar",
+  "art": [
+    "  /\\   /\\ ",
+    " (  @@  )",
+    "  \\ Y /  ",
+    "  /   \\  ",
+    " (_) (_) "
+  ],
+  "anchor": {"x": 5, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 4,
+    "width": 2,
+    "placeholder": "@@"
+  },
+  "mouth": {
+    "line": 2,
+    "col": 4,
+    "width": 1,
+    "placeholder": "Y"
+  }
+}
