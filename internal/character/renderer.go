@@ -2,12 +2,14 @@
 package character
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/MagikIO/familiar-says/internal/bubble"
 	"github.com/MagikIO/familiar-says/internal/canvas"
+	customerrors "github.com/MagikIO/familiar-says/internal/errors"
 	"github.com/MagikIO/familiar-says/internal/personality"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -64,7 +66,7 @@ func (r *Renderer) RenderDefault(text string, style bubble.Style) []string {
 func (r *Renderer) RenderByName(text string, name string, style bubble.Style) ([]string, error) {
 	char, err := LoadCharacter(name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to render character: %w", err)
 	}
 	return r.Render(text, char, style), nil
 }
@@ -75,6 +77,10 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 	// Normalize the name
 	name = strings.ToLower(strings.TrimSpace(name))
 
+	if name == "" {
+		return nil, customerrors.NewValidationError("character name", name, "cannot be empty")
+	}
+
 	// Check if it's a builtin character
 	if char, ok := canvas.GetBuiltinCharacter(name); ok {
 		return char, nil
@@ -82,7 +88,11 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 
 	// Check if it's a file path
 	if strings.HasSuffix(name, ".json") {
-		return canvas.LoadCharacter(name)
+		char, err := canvas.LoadCharacter(name)
+		if err != nil {
+			return nil, customerrors.NewCharacterLoadError(name, err)
+		}
+		return char, nil
 	}
 
 	// Try to find a JSON file
@@ -92,14 +102,21 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 		filepath.Join("characters", name+".json"),
 	}
 
+	var lastErr error
 	for _, path := range searchPaths {
 		char, err := canvas.LoadCharacter(path)
 		if err == nil {
 			return char, nil
 		}
+		lastErr = err
 	}
 
-	return nil, fmt.Errorf("character not found: %s", name)
+	// If we got here, none of the paths worked
+	if lastErr != nil {
+		return nil, customerrors.NewCharacterLoadError(name, lastErr, searchPaths...)
+	}
+
+	return nil, customerrors.NewCharacterLoadError(name, errors.New("character not found in any standard location"))
 }
 
 // ListCharacters returns all available character names.
@@ -183,7 +200,7 @@ func (r *Renderer) RenderInfo() string {
 func GetCharacterPreview(name string, theme personality.Theme, mood personality.Mood) ([]string, error) {
 	char, err := LoadCharacter(name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to generate character preview: %w", err)
 	}
 
 	expr := theme.GetExpression(mood)

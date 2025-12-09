@@ -141,7 +141,7 @@ func Animate(content []string, animType AnimationType, speed time.Duration) erro
 
 	p := tea.NewProgram(New(content, animType, speed))
 	if _, err := p.Run(); err != nil {
-		return err
+		return fmt.Errorf("animation rendering failed: %w", err)
 	}
 	return nil
 }

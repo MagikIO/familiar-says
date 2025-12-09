@@ -1,5 +1,8 @@
 # familiar-says
 
+[![Test Suite](https://github.com/MagikIO/familiar-says/actions/workflows/test.yml/badge.svg)](https://github.com/MagikIO/familiar-says/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/MagikIO/familiar-says)](https://goreportcard.com/report/github.com/MagikIO/familiar-says)
+
 A modern, feature-rich replacement for `cowsay` built in Go. Create personality-themed speech bubbles with rich styling, animations, and visual effects.
 
 ## Features
@@ -196,7 +199,19 @@ The project is organized into several packages:
 - `internal/animation` - Terminal animations using Bubble Tea
 - `internal/effects` - Visual effects engine
 - `internal/character` - Character rendering engine
+- `internal/canvas` - Low-level character rendering with color support
+- `internal/errors` - Custom error types with consistent formatting
 - `cmd` - CLI application using Cobra
+
+### Error Handling
+
+The application features comprehensive error handling with:
+
+- **Custom error types** for better error context (CharacterLoadError, ColorParseError, ValidationError)
+- **Wrapped errors** using `fmt.Errorf` with `%w` for full error chains
+- **Input validation** at entry points with user-friendly messages
+- **Graceful degradation** for terminal width detection failures
+- **Clear error messages** showing exactly what went wrong and where
 
 ## Dependencies
 

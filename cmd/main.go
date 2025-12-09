@@ -12,8 +12,10 @@ import (
 	"github.com/MagikIO/familiar-says/internal/canvas"
 	"github.com/MagikIO/familiar-says/internal/character"
 	"github.com/MagikIO/familiar-says/internal/effects"
+	customerrors "github.com/MagikIO/familiar-says/internal/errors"
 	"github.com/MagikIO/familiar-says/internal/personality"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -127,6 +129,11 @@ func runSay(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	// Validate flags
+	if err := validateFlags(); err != nil {
+		return fmt.Errorf("invalid flags: %w", err)
+	}
+
 	// Get message
 	var message string
 	if len(args) > 0 {
@@ -134,10 +141,14 @@ func runSay(cmd *cobra.Command, args []string) error {
 	} else {
 		// Read from stdin if available
 		stat, err := os.Stdin.Stat()
-		if err == nil && (stat.Mode()&os.ModeCharDevice) == 0 {
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to check stdin: %v\n", err)
+			message = "Hello from familiar-says!"
+		} else if (stat.Mode() & os.ModeCharDevice) == 0 {
 			// Data is being piped to stdin
 			data, err := io.ReadAll(os.Stdin)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to read stdin: %v\n", err)
 				message = "Hello from familiar-says!"
 			} else {
 				message = strings.TrimSpace(string(data))
@@ -201,4 +212,62 @@ func runSay(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// validateFlags validates command-line flags
+func validateFlags() error {
+	// Validate width
+	if bubbleWidth <= 0 {
+		return customerrors.NewValidationError("width", bubbleWidth, "must be greater than 0")
+	}
+	if bubbleWidth > 1000 {
+		return customerrors.NewValidationError("width", bubbleWidth, "must be 1000 or less")
+	}
+
+	// Validate animation speed
+	if animSpeed < 0 {
+		return customerrors.NewValidationError("speed", animSpeed, "must be non-negative")
+	}
+	if animSpeed > 10000 {
+		return customerrors.NewValidationError("speed", animSpeed, "must be 10000ms or less")
+	}
+
+	// Validate colors if provided
+	if outlineColor != "" && !canvas.ValidateColor(outlineColor) {
+		return customerrors.NewColorParseError(outlineColor, nil)
+	}
+	if eyeColor != "" && !canvas.ValidateColor(eyeColor) {
+		return customerrors.NewColorParseError(eyeColor, nil)
+	}
+	if mouthColor != "" && !canvas.ValidateColor(mouthColor) {
+		return customerrors.NewColorParseError(mouthColor, nil)
+	}
+
+	return nil
+}
+
+// getTerminalWidth attempts to detect the terminal width, falling back to a default
+func getTerminalWidth() int {
+	const defaultWidth = 40
+	const maxWidth = 1000
+
+	// Try to get terminal dimensions
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		// Terminal size detection failed, use default
+		return defaultWidth
+	}
+
+	// Sanity check the width
+	if width <= 0 || width > maxWidth {
+		return defaultWidth
+	}
+
+	// Leave some margin for the speech bubble
+	width = width - 10
+	if width < 20 {
+		width = 20
+	}
+
+	return width
 }

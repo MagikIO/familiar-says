@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/MagikIO/familiar-says/internal/errors"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -39,12 +40,12 @@ type Character struct {
 func LoadCharacter(filename string) (*Character, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read character file: %w", err)
+		return nil, fmt.Errorf("failed to read character file %q: %w", filename, err)
 	}
 
 	var char Character
 	if err := json.Unmarshal(data, &char); err != nil {
-		return nil, fmt.Errorf("failed to parse character JSON: %w", err)
+		return nil, fmt.Errorf("failed to parse character JSON from %q: %w", filename, err)
 	}
 
 	// Validate required fields
@@ -52,7 +53,7 @@ func LoadCharacter(filename string) (*Character, error) {
 		char.Name = strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 	}
 	if len(char.Art) == 0 {
-		return nil, fmt.Errorf("character has no art defined")
+		return nil, errors.ErrEmptyArt
 	}
 
 	return &char, nil
