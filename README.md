@@ -58,10 +58,10 @@ With effects:
 familiar-says --effect confetti "Celebration time!"
 ```
 
-Using a custom character:
+Using a built-in character:
 
 ```bash
-familiar-says --character characters/cat.cow "Meow!"
+familiar-says --character cat "Meow!"
 ```
 
 ## Usage
@@ -70,19 +70,24 @@ familiar-says --character characters/cat.cow "Meow!"
 familiar-says [message] [flags]
 
 Flags:
-  -a, --animate           Enable typing animation
-  -c, --character string  Path to .cow character file
-  -e, --effect string     Visual effect (none, confetti, fireworks, sparkle, rainbow) (default "none")
-  -E, --list-effects      List available effects
-  -M, --list-moods        List available moods
-  -T, --list-themes       List available themes
-  -m, --mood string       Mood expression (happy, sad, angry, surprised, bored, excited, neutral, sleepy) (default "neutral")
-  -p, --multipanel        Enable multi-panel mode (experimental)
-  -s, --speed int         Animation speed in milliseconds (default 50)
-  -t, --theme string      Theme to use (default, rainbow, cyber, retro) (default "default")
-      --think             Use thought bubble instead of speech bubble
-  -w, --width int         Width of speech bubble (default 40)
-  -h, --help              help for familiar-says
+  -a, --animate              Enable typing animation
+  -c, --character string     Character to use (cat, owl, fox, bunny, penguin, dragon, robot, bat, turtle, default)
+  -C, --list-characters      List available characters
+  -e, --effect string        Visual effect (none, confetti, fireworks, sparkle, rainbow, rainbow-text) (default "none")
+  -E, --list-effects         List available effects
+  -M, --list-moods           List available moods
+  -T, --list-themes          List available themes
+  -m, --mood string          Mood expression (happy, sad, angry, surprised, bored, excited, neutral, sleepy) (default "neutral")
+  -p, --multipanel           Enable multi-panel mode (experimental)
+  -s, --speed int            Animation speed in milliseconds (default 50)
+  -t, --theme string         Theme to use (default, rainbow, cyber, retro) (default "default")
+      --think                Use thought bubble instead of speech bubble
+  -w, --width int            Width of speech bubble (default 40)
+      --outline-color string Color for character outline/body (hex, ANSI, or name)
+      --eye-color string     Color for character eyes (hex, ANSI, or name)
+      --mouth-color string   Color for character mouth (hex, ANSI, or name)
+      --list-colors          List available named colors
+  -h, --help                 help for familiar-says
 ```
 
 ## Themes
@@ -142,26 +147,78 @@ Colors each character with rainbow colors
 familiar-says --effect rainbow "Colorful!"
 ```
 
+### Rainbow Text
+Applies rainbow colors only to the message text (not the character)
+```bash
+familiar-says --effect rainbow-text "Colorful message!"
+```
+
 ## Custom Characters
 
-familiar-says supports traditional `.cow` character files. Several example characters are included:
+familiar-says includes several built-in character familiars:
 
-- `default.cow` - Classic cow
-- `cat.cow` - Cute cat
-- `bunny.cow` - Adorable bunny
-- `dragon.cow` - Majestic dragon
+- `default` - Classic cow
+- `cat` - Cute cat
+- `bunny` - Adorable bunny
+- `dragon` - Majestic dragon
+- `owl` - Wise owl
+- `fox` - Clever fox
+- `penguin` - Waddle penguin
+- `robot` - Mechanical robot
+- `bat` - Night bat
+- `turtle` - Slow turtle
 
-Create your own .cow files following the standard format:
+Characters are defined using JSON files with support for customizable colors and anchor positions. Example format:
 
-```perl
-## My Custom Character
-$the_cow = <<EOC;
-        $thoughts   Your
-         $thoughts  Character
-            $eyes   Here!
-            $tongue
-EOC
+```json
+{
+  "name": "cat",
+  "description": "A cute cat familiar",
+  "art": [
+    "  /\\_/\\  ",
+    " ( @@ ) ",
+    " =( Y )=",
+    "   ^ ^  "
+  ],
+  "anchor": {"x": 4, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 3,
+    "width": 2,
+    "placeholder": "@@"
+  },
+  "mouth": {
+    "line": 2,
+    "col": 4,
+    "width": 1,
+    "placeholder": "Y"
+  },
+  "colors": {
+    "eyes": "#7CFC00",
+    "mouth": "#FF69B4"
+  }
+}
 ```
+
+## Character Color Customization
+
+You can customize character colors using the color flags:
+
+```bash
+# Custom colored cat
+familiar-says --character cat --eye-color "#00FF00" --mouth-color pink "Custom colors!"
+
+# Full color customization
+familiar-says --character dragon --outline-color fire --eye-color gold --mouth-color red "Fiery dragon!"
+
+# See all available named colors
+familiar-says --list-colors
+```
+
+Supported color formats:
+- **Hex codes**: `#FF6B6B`, `#F6B`, `FF6B6B`
+- **ANSI 256**: `196`, `82`, `46`
+- **Named colors**: `red`, `blue`, `pink`, `fire`, `ocean`, `sunset`, etc.
 
 ## Examples
 
@@ -169,7 +226,7 @@ EOC
 
 ```bash
 # Happy cat with rainbow effect
-familiar-says --character characters/cat.cow --mood happy --effect rainbow "I love rainbows!"
+familiar-says --character cat --mood happy --effect rainbow "I love rainbows!"
 
 # Animated angry cyber-themed message
 familiar-says --mood angry --theme cyber --animate --speed 30 "System breach detected!"
@@ -179,6 +236,9 @@ familiar-says --think --effect sparkle "What should I think about?"
 
 # Custom width for long messages
 familiar-says --width 60 "This is a much longer message that needs more space to display properly without wrapping too much."
+
+# Custom colored owl
+familiar-says --character owl --eye-color gold --mood wise "Hoot hoot!"
 ```
 
 ### Piping input:
@@ -193,15 +253,15 @@ fortune | familiar-says --mood happy --theme rainbow
 
 The project is organized into several packages:
 
-- `pkg/cowparser` - Parses .cow character files
 - `internal/bubble` - Speech bubble generation with word wrapping
 - `internal/personality` - Theme and mood system
 - `internal/animation` - Terminal animations using Bubble Tea
 - `internal/effects` - Visual effects engine
-- `internal/character` - Character rendering engine
-- `internal/canvas` - Low-level character rendering with color support
+- `internal/character` - Character rendering engine (loads JSON character files)
+- `internal/canvas` - Low-level character rendering with color support and composition
 - `internal/errors` - Custom error types with consistent formatting
 - `cmd` - CLI application using Cobra
+- `characters/` - Built-in character definitions in JSON format
 
 ### Error Handling
 
