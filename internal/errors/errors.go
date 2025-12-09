@@ -99,11 +99,34 @@ func NewTerminalError(operation string, err error) *TerminalError {
 	}
 }
 
+// ConfigError represents an error that occurred while loading or parsing config
+type ConfigError struct {
+	Path string
+	Err  error
+}
+
+func (e *ConfigError) Error() string {
+	return fmt.Sprintf("config error (%s): %v", e.Path, e.Err)
+}
+
+func (e *ConfigError) Unwrap() error {
+	return e.Err
+}
+
+// NewConfigError creates a new ConfigError
+func NewConfigError(path string, err error) *ConfigError {
+	return &ConfigError{
+		Path: path,
+		Err:  err,
+	}
+}
+
 // Common error types for specific scenarios
 var (
-	ErrCharacterNotFound = errors.New("character not found")
+	ErrCharacterNotFound  = errors.New("character not found")
 	ErrInvalidColorFormat = errors.New("invalid color format")
-	ErrEmptyArt = errors.New("character has no art defined")
-	ErrInvalidWidth = errors.New("width must be greater than 0")
-	ErrInvalidHeight = errors.New("height must be greater than 0")
+	ErrEmptyArt           = errors.New("character has no art defined")
+	ErrInvalidWidth       = errors.New("width must be greater than 0")
+	ErrInvalidHeight      = errors.New("height must be greater than 0")
+	ErrConfigNotFound     = errors.New("config file not found")
 )

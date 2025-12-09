@@ -90,6 +90,100 @@ Flags:
   -h, --help                 help for familiar-says
 ```
 
+## Configuration
+
+familiar-says supports configuration files, profiles, and environment variables to reduce repetitive flag usage.
+
+### Config File
+
+Create a config file at `~/.config/familiar-says/config.json`:
+
+```json
+{
+  "default": {
+    "character": "cat",
+    "theme": "cyber",
+    "mood": "happy",
+    "width": 50
+  }
+}
+```
+
+All flags can be configured:
+- `character`, `theme`, `mood`, `width`, `animate`, `speed`, `effect`, `think`, `multipanel`
+- `outlineColor`, `eyeColor`, `mouthColor`
+
+### Profiles
+
+Define multiple profiles for different use cases:
+
+```json
+{
+  "default": {
+    "character": "cat",
+    "width": 50
+  },
+  "profiles": {
+    "work": {
+      "character": "owl",
+      "theme": "cyber",
+      "mood": "neutral"
+    },
+    "fun": {
+      "character": "dragon",
+      "theme": "rainbow",
+      "effect": "sparkle",
+      "animate": true
+    },
+    "presentation": {
+      "character": "robot",
+      "theme": "cyber",
+      "width": 80,
+      "animate": true,
+      "speed": 40
+    }
+  }
+}
+```
+
+Use profiles with the `--profile` flag:
+
+```bash
+familiar-says --profile work "Meeting at 3pm"
+familiar-says --profile fun "Party time!"
+```
+
+### Environment Variables
+
+Override config values using environment variables:
+
+```bash
+export FAMILIAR_SAYS_CHARACTER="owl"
+export FAMILIAR_SAYS_THEME="cyber"
+export FAMILIAR_SAYS_MOOD="neutral"
+
+familiar-says "Using env vars!"
+```
+
+All flags have corresponding environment variables with the `FAMILIAR_SAYS_` prefix:
+- `FAMILIAR_SAYS_CHARACTER`, `FAMILIAR_SAYS_THEME`, `FAMILIAR_SAYS_MOOD`
+- `FAMILIAR_SAYS_WIDTH`, `FAMILIAR_SAYS_SPEED`
+- `FAMILIAR_SAYS_ANIMATE`, `FAMILIAR_SAYS_THINK`, `FAMILIAR_SAYS_MULTIPANEL` (use `true`/`false`, `1`/`0`, or `yes`/`no`)
+- `FAMILIAR_SAYS_EFFECT`
+- `FAMILIAR_SAYS_OUTLINE_COLOR`, `FAMILIAR_SAYS_EYE_COLOR`, `FAMILIAR_SAYS_MOUTH_COLOR`
+- `FAMILIAR_SAYS_PROFILE`
+
+### Precedence Order
+
+Configuration sources are applied in this order (highest priority last):
+
+1. **Defaults** - Built-in defaults
+2. **Config File** - Values from `~/.config/familiar-says/config.json`
+3. **Environment Variables** - `FAMILIAR_SAYS_*` env vars
+4. **CLI Flags** - Command-line flags (always win)
+
+This allows you to set defaults in your config file, override them per-session with environment variables, and override everything with explicit CLI flags.
+
 ## Themes
 
 ### Default
@@ -259,6 +353,7 @@ The project is organized into several packages:
 - `internal/effects` - Visual effects engine
 - `internal/character` - Character rendering engine (loads JSON character files)
 - `internal/canvas` - Low-level character rendering with color support and composition
+- `internal/config` - Configuration file, profile, and environment variable management
 - `internal/errors` - Custom error types with consistent formatting
 - `cmd` - CLI application using Cobra
 - `characters/` - Built-in character definitions in JSON format

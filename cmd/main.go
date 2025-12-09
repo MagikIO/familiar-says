@@ -11,6 +11,7 @@ import (
 	"github.com/MagikIO/familiar-says/internal/bubble"
 	"github.com/MagikIO/familiar-says/internal/canvas"
 	"github.com/MagikIO/familiar-says/internal/character"
+	"github.com/MagikIO/familiar-says/internal/config"
 	"github.com/MagikIO/familiar-says/internal/effects"
 	customerrors "github.com/MagikIO/familiar-says/internal/errors"
 	"github.com/MagikIO/familiar-says/internal/personality"
@@ -39,6 +40,9 @@ var (
 	eyeColor     string
 	mouthColor   string
 	listColors   bool
+
+	// Profile flag
+	profileName string
 )
 
 var rootCmd = &cobra.Command{
@@ -75,6 +79,9 @@ func init() {
 	rootCmd.Flags().StringVar(&eyeColor, "eye-color", "", "Color for character eyes (hex, ANSI, or name)")
 	rootCmd.Flags().StringVar(&mouthColor, "mouth-color", "", "Color for character mouth (hex, ANSI, or name)")
 	rootCmd.Flags().BoolVar(&listColors, "list-colors", false, "List available named colors")
+
+	// Profile flag
+	rootCmd.Flags().StringVar(&profileName, "profile", "", "Configuration profile to use")
 }
 
 // Execute runs the root command
@@ -83,6 +90,33 @@ func Execute() error {
 }
 
 func runSay(cmd *cobra.Command, args []string) error {
+	// Load config file if it exists
+	cfg, loadErr := config.Load()
+	if loadErr != nil {
+		return fmt.Errorf("config file error: %w", loadErr)
+	}
+
+	// Get effective config from file (default + profile)
+	var fileConfig *config.FlagConfig
+	if cfg != nil {
+		fileConfig = cfg.GetEffectiveConfig(profileName)
+	} else {
+		fileConfig = &config.FlagConfig{}
+	}
+
+	// Load environment variables
+	envConfig := config.LoadFromEnv()
+
+	// Merge: config file < env vars (env vars override config file)
+	mergedConfig := &config.FlagConfig{}
+	config.Merge(mergedConfig, fileConfig)
+	config.Merge(mergedConfig, envConfig)
+
+	// Apply merged config (will be overridden by explicit CLI flags)
+	config.ApplyToFlags(mergedConfig, cmd)
+
+	// CLI flags already have highest precedence (handled by cobra)
+
 	// Handle list commands
 	if listThemes {
 		fmt.Println("Available themes:")
