@@ -18,9 +18,10 @@ const (
 	ActionHeadTilt  Action = "head_tilt"
 	ActionEarWiggle Action = "ear_wiggle"
 	ActionHop       Action = "hop"
-	ActionWaddle    Action = "waddle"
-	ActionWingFlap  Action = "wing_flap"
-	ActionHeadBob   Action = "head_bob"
+	ActionWaddle     Action = "waddle"
+	ActionWingFlap   Action = "wing_flap"
+	ActionHeadBob    Action = "head_bob"
+	ActionTongueFlick Action = "tongue_flick"
 )
 
 // actionDescriptions maps actions to their descriptions.
@@ -37,8 +38,9 @@ var actionDescriptions = map[Action]string{
 	ActionEarWiggle: "Ear wiggling motion",
 	ActionHop:       "Small hopping motion",
 	ActionWaddle:    "Waddling walk motion",
-	ActionWingFlap:  "Wing flapping animation",
-	ActionHeadBob:   "Head bobbing up and down",
+	ActionWingFlap:    "Wing flapping animation",
+	ActionHeadBob:     "Head bobbing up and down",
+	ActionTongueFlick: "Tongue flicking out to catch bugs",
 }
 
 // AllActions returns a slice of all available actions.
@@ -58,6 +60,7 @@ func AllActions() []Action {
 		ActionWaddle,
 		ActionWingFlap,
 		ActionHeadBob,
+		ActionTongueFlick,
 	}
 }
 
