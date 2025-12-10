@@ -366,3 +366,41 @@ func ValidateTemplate(name string) bool {
 func (t *BubbleTemplate) GetDefaultTailDirection() TailDirection {
 	return TailDown
 }
+
+// LoadTemplateFromFile loads a template from a specific file path.
+func LoadTemplateFromFile(path string) (*BubbleTemplate, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var tmpl BubbleTemplate
+	if err := json.Unmarshal(data, &tmpl); err != nil {
+		return nil, err
+	}
+
+	// Use filename as name if not specified
+	if tmpl.Name == "" {
+		base := filepath.Base(path)
+		tmpl.Name = strings.TrimSuffix(base, ".json")
+	}
+
+	return &tmpl, nil
+}
+
+// GetOrLoadTemplate tries to get a template by name or load it from a file path.
+// If the name ends with .json or contains a path separator, it's treated as a file path.
+func GetOrLoadTemplate(nameOrPath string) (*BubbleTemplate, error) {
+	// Check if it's a file path
+	if strings.HasSuffix(nameOrPath, ".json") || strings.Contains(nameOrPath, string(filepath.Separator)) {
+		return LoadTemplateFromFile(nameOrPath)
+	}
+	
+	// Try as a template name
+	tmpl := GetTemplate(nameOrPath)
+	if tmpl != nil {
+		return tmpl, nil
+	}
+	
+	return nil, os.ErrNotExist
+}

@@ -1,0 +1,13 @@
+{
+  "name": "heart",
+  "topBorder": "♥",
+  "bottomBorder": "♥",
+  "singleLeft": "♡",
+  "singleRight": "♡",
+  "multiFirst": ["♡", "♡"],
+  "multiMiddle": ["♡", "♡"],
+  "multiLast": ["♡", "♡"],
+  "connector": "♥",
+  "prefix": "💕 ",
+  "suffix": " 💕"
+}

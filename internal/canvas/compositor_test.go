@@ -89,6 +89,116 @@ func TestComposeBubbleStyles(t *testing.T) {
 			t.Error("Think style should use 'o' connector")
 		}
 	})
+
+	t.Run("shout style", func(t *testing.T) {
+		config.BubbleStyle = BubbleStyleShout
+		canvas := Compose(text, char, "^^", "w", config)
+		lines := canvas.RenderPlain()
+		content := strings.Join(lines, "")
+
+		// Shout style uses '!' connector
+		if !strings.Contains(content, "!") {
+			t.Error("Shout style should use '!' connector")
+		}
+		// Shout has jagged border
+		if !strings.Contains(content, "^") {
+			t.Error("Shout style should have ^ in border")
+		}
+	})
+
+	t.Run("whisper style", func(t *testing.T) {
+		config.BubbleStyle = BubbleStyleWhisper
+		canvas := Compose(text, char, "^^", "w", config)
+		lines := canvas.RenderPlain()
+		content := strings.Join(lines, "")
+
+		// Whisper style uses '.' connector
+		if !strings.Contains(content, ".") {
+			t.Error("Whisper style should use '.' connector")
+		}
+	})
+
+	t.Run("song style", func(t *testing.T) {
+		config.BubbleStyle = BubbleStyleSong
+		canvas := Compose(text, char, "^^", "w", config)
+		lines := canvas.RenderPlain()
+		content := strings.Join(lines, "")
+
+		// Song style uses musical note connector
+		if !strings.Contains(content, "♪") {
+			t.Error("Song style should use '♪' connector")
+		}
+	})
+
+	t.Run("code style", func(t *testing.T) {
+		config.BubbleStyle = BubbleStyleCode
+		canvas := Compose(text, char, "^^", "w", config)
+		lines := canvas.RenderPlain()
+		content := strings.Join(lines, "")
+
+		// Code style uses box drawing characters
+		if !strings.Contains(content, "│") {
+			t.Error("Code style should use box drawing characters")
+		}
+	})
+}
+
+// TestComposeTailDirections tests different tail directions
+func TestComposeTailDirections(t *testing.T) {
+	char := builtinCat()
+	text := "Test"
+	config := DefaultConfig()
+
+	t.Run("tail down (default)", func(t *testing.T) {
+		config.TailDirection = TailDown
+		canvas := Compose(text, char, "^^", "w", config)
+		if canvas == nil {
+			t.Fatal("Compose returned nil")
+		}
+		if canvas.Height == 0 {
+			t.Error("Canvas height should be > 0")
+		}
+	})
+
+	t.Run("tail up", func(t *testing.T) {
+		config.TailDirection = TailUp
+		canvas := Compose(text, char, "^^", "w", config)
+		if canvas == nil {
+			t.Fatal("Compose returned nil")
+		}
+		// With tail up, character should be above bubble
+		lines := canvas.RenderPlain()
+		// The character should appear before the bubble
+		charFoundFirst := false
+		for _, line := range lines {
+			if strings.Contains(line, "^^") {
+				charFoundFirst = true
+				break
+			}
+			if strings.Contains(line, "Test") {
+				break
+			}
+		}
+		if !charFoundFirst {
+			t.Error("With TailUp, character should appear above bubble")
+		}
+	})
+
+	t.Run("tail left", func(t *testing.T) {
+		config.TailDirection = TailLeft
+		canvas := Compose(text, char, "^^", "w", config)
+		if canvas == nil {
+			t.Fatal("Compose returned nil")
+		}
+	})
+
+	t.Run("tail right", func(t *testing.T) {
+		config.TailDirection = TailRight
+		canvas := Compose(text, char, "^^", "w", config)
+		if canvas == nil {
+			t.Fatal("Compose returned nil")
+		}
+	})
 }
 
 // TestComposeLayouts tests different layout modes

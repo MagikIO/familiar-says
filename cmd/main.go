@@ -56,6 +56,9 @@ var (
 	// Code bubble flags
 	codeLanguage string
 	codeStyle    string
+	
+	// Custom template
+	customTemplate string
 )
 
 var rootCmd = &cobra.Command{
@@ -108,6 +111,9 @@ func init() {
 	// Code bubble flags
 	rootCmd.Flags().StringVar(&codeLanguage, "code-language", "", "Language for syntax highlighting (go, python, javascript, etc.)")
 	rootCmd.Flags().StringVar(&codeStyle, "code-style", "monokai", "Syntax highlighting theme (monokai, dracula, github, etc.)")
+	
+	// Custom template
+	rootCmd.Flags().StringVar(&customTemplate, "custom-bubble", "", "Path to custom bubble template JSON file or template name in ~/.config/familiar-says/bubbles/")
 }
 
 // Execute runs the root command
@@ -256,6 +262,11 @@ func runSay(cmd *cobra.Command, args []string) error {
 			Eyes:    eyeColor,
 			Mouth:   mouthColor,
 		}
+	}
+	
+	// Set custom template if provided
+	if customTemplate != "" {
+		renderer.CustomTemplate = customTemplate
 	}
 
 	// Determine bubble style (--think is deprecated, --bubble-style takes precedence)

@@ -39,14 +39,15 @@ const (
 
 // CompositorConfig holds configuration for the compositor.
 type CompositorConfig struct {
-	BubbleWidth   int
-	BubbleStyle   BubbleStyle
-	Layout        Layout
-	BubbleColor   lipgloss.Style
-	CharColor     lipgloss.Style    // Fallback color for character (deprecated in favor of CharColors)
-	CharColors    *CharacterColors  // Per-part colors for character (outline, eyes, mouth)
-	ConnectorLen  int               // Number of connector lines (default 2)
-	TailDirection TailDirection     // Direction the bubble tail points (default down)
+	BubbleWidth    int
+	BubbleStyle    BubbleStyle
+	Layout         Layout
+	BubbleColor    lipgloss.Style
+	CharColor      lipgloss.Style    // Fallback color for character (deprecated in favor of CharColors)
+	CharColors     *CharacterColors  // Per-part colors for character (outline, eyes, mouth)
+	ConnectorLen   int               // Number of connector lines (default 2)
+	TailDirection  TailDirection     // Direction the bubble tail points (default down)
+	CustomTemplate string            // Custom template name or path (overrides BubbleStyle if set)
 }
 
 // DefaultConfig returns a default compositor configuration.
@@ -70,11 +71,24 @@ func Compose(text string, char *Character, eyes, mouth string, config Compositor
 		config.ConnectorLen = 2
 	}
 
-	// 1. Render the speech bubble
-	bubbleCanvas := RenderBubble(text, config.BubbleWidth, config.BubbleStyle, config.BubbleColor)
+	// 1. Get the template (custom or based on style)
+	var tmpl *bubble.BubbleTemplate
+	if config.CustomTemplate != "" {
+		var err error
+		tmpl, err = bubble.GetOrLoadTemplate(config.CustomTemplate)
+		if err != nil {
+			// Fall back to style-based template on error
+			tmpl = GetTemplateForBubbleStyle(config.BubbleStyle)
+		}
+	} else {
+		tmpl = GetTemplateForBubbleStyle(config.BubbleStyle)
+	}
 
-	// 2. Generate the connector using template-based character
-	tmpl := GetTemplateForBubbleStyle(config.BubbleStyle)
+	// 2. Render the speech bubble
+	bubbleLines := renderBubbleWithTemplate(text, config.BubbleWidth, tmpl)
+	bubbleCanvas := FromLines(bubbleLines, config.BubbleColor)
+
+	// 3. Generate the connector using template-based character
 	connectorChar := tmpl.Connector
 	if connectorChar == "" {
 		connectorChar = "\\"
@@ -89,15 +103,15 @@ func Compose(text string, char *Character, eyes, mouth string, config Compositor
 		config.CharColor,
 	)
 
-	// 3. Resolve character styles
+	// 4. Resolve character styles
 	// Merge character's default colors with config overrides
 	mergedColors := MergeColors(char.Colors, config.CharColors)
 	charStyles := ResolveCharacterStyles(mergedColors, config.CharColor)
 
-	// 4. Render the character with expressions and per-part styling
+	// 5. Render the character with expressions and per-part styling
 	charCanvas := char.ToCanvasStyled(eyes, mouth, charStyles)
 
-	// 5. Compose based on layout and tail direction
+	// 6. Compose based on layout and tail direction
 	return composeWithDirection(bubbleCanvas, connectorCanvas, charCanvas, config)
 }
 

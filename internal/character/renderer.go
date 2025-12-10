@@ -16,10 +16,11 @@ import (
 
 // Renderer handles character rendering using the canvas-based composition system.
 type Renderer struct {
-	Theme       personality.Theme
-	Mood        personality.Mood
-	BubbleWidth int
-	CharColors  *canvas.CharacterColors // Optional per-part color overrides
+	Theme          personality.Theme
+	Mood           personality.Mood
+	BubbleWidth    int
+	CharColors     *canvas.CharacterColors // Optional per-part color overrides
+	CustomTemplate string                  // Optional custom bubble template name/path
 }
 
 // NewRenderer creates a new character renderer.
@@ -46,14 +47,15 @@ func (r *Renderer) RenderWithTailDirection(text string, char *canvas.Character, 
 
 	// Configure the compositor
 	config := canvas.CompositorConfig{
-		BubbleWidth:   r.BubbleWidth,
-		BubbleStyle:   bubbleStyleToCanvasStyle(style),
-		Layout:        canvas.LayoutVertical,
-		BubbleColor:   r.Theme.BubbleStyle,
-		CharColor:     r.Theme.CharacterStyle,
-		CharColors:    r.CharColors,
-		ConnectorLen:  2,
-		TailDirection: tailDir,
+		BubbleWidth:    r.BubbleWidth,
+		BubbleStyle:    bubbleStyleToCanvasStyle(style),
+		Layout:         canvas.LayoutVertical,
+		BubbleColor:    r.Theme.BubbleStyle,
+		CharColor:      r.Theme.CharacterStyle,
+		CharColors:     r.CharColors,
+		ConnectorLen:   2,
+		TailDirection:  tailDir,
+		CustomTemplate: r.CustomTemplate,
 	}
 
 	// Compose the output

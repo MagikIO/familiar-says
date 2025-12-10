@@ -1,0 +1,16 @@
+{
+  "name": "spooky",
+  "topBorder": "☠",
+  "bottomBorder": "☠",
+  "topLeftCorner": "👻",
+  "topRightCorner": "👻",
+  "bottomLeftCorner": "💀",
+  "bottomRightCorner": "💀",
+  "singleLeft": "│",
+  "singleRight": "│",
+  "multiFirst": ["│", "│"],
+  "multiMiddle": ["│", "│"],
+  "multiLast": ["│", "│"],
+  "connector": "🕸",
+  "suffix": " 👻"
+}
