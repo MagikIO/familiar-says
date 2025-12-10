@@ -36,24 +36,48 @@ func NewRenderer(theme personality.Theme, mood personality.Mood, width int) *Ren
 
 // Render renders a character with a speech bubble using the canvas system.
 func (r *Renderer) Render(text string, char *canvas.Character, style bubble.Style) []string {
+	return r.RenderWithTailDirection(text, char, style, canvas.TailDown)
+}
+
+// RenderWithTailDirection renders a character with a speech bubble and custom tail direction.
+func (r *Renderer) RenderWithTailDirection(text string, char *canvas.Character, style bubble.Style, tailDir canvas.TailDirection) []string {
 	// Get expression for mood
 	expr := r.Theme.GetExpression(r.Mood)
 
 	// Configure the compositor
 	config := canvas.CompositorConfig{
-		BubbleWidth:  r.BubbleWidth,
-		BubbleStyle:  style.ToCanvasStyle(),
-		Layout:       canvas.LayoutVertical,
-		BubbleColor:  r.Theme.BubbleStyle,
-		CharColor:    r.Theme.CharacterStyle,
-		CharColors:   r.CharColors,
-		ConnectorLen: 2,
+		BubbleWidth:   r.BubbleWidth,
+		BubbleStyle:   bubbleStyleToCanvasStyle(style),
+		Layout:        canvas.LayoutVertical,
+		BubbleColor:   r.Theme.BubbleStyle,
+		CharColor:     r.Theme.CharacterStyle,
+		CharColors:    r.CharColors,
+		ConnectorLen:  2,
+		TailDirection: tailDir,
 	}
 
 	// Compose the output
 	result := canvas.Compose(text, char, expr.Eyes, expr.Tongue, config)
 
 	return result.Render()
+}
+
+// bubbleStyleToCanvasStyle converts bubble.Style to canvas.BubbleStyle
+func bubbleStyleToCanvasStyle(s bubble.Style) canvas.BubbleStyle {
+	switch s {
+	case bubble.StyleThink:
+		return canvas.BubbleStyleThink
+	case bubble.StyleShout:
+		return canvas.BubbleStyleShout
+	case bubble.StyleWhisper:
+		return canvas.BubbleStyleWhisper
+	case bubble.StyleSong:
+		return canvas.BubbleStyleSong
+	case bubble.StyleCode:
+		return canvas.BubbleStyleCode
+	default:
+		return canvas.BubbleStyleSay
+	}
 }
 
 // RenderDefault renders with the default character.

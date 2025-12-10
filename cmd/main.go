@@ -21,19 +21,22 @@ import (
 
 var (
 	// Flags
-	themeName      string
-	moodName       string
-	characterName  string
-	bubbleWidth    int
-	animate        bool
-	animSpeed      int
-	effect         string
-	thinkMode      bool
-	listThemes     bool
-	listMoods      bool
-	listEffects    bool
-	listCharacters bool
-	multipanel     bool
+	themeName       string
+	moodName        string
+	characterName   string
+	bubbleWidth     int
+	animate         bool
+	animSpeed       int
+	effect          string
+	thinkMode       bool
+	bubbleStyleName string
+	tailDirection   string
+	listThemes      bool
+	listMoods       bool
+	listEffects     bool
+	listCharacters  bool
+	listBubbles     bool
+	multipanel      bool
 
 	// Character color flags
 	outlineColor string
@@ -49,6 +52,10 @@ var (
 	idleAnim     bool
 	animDuration int
 	listActions  bool
+
+	// Code bubble flags
+	codeLanguage string
+	codeStyle    string
 )
 
 var rootCmd = &cobra.Command{
@@ -73,11 +80,14 @@ func init() {
 	rootCmd.Flags().BoolVarP(&animate, "animate", "a", false, "Enable typing animation")
 	rootCmd.Flags().IntVarP(&animSpeed, "speed", "s", 50, "Animation speed in milliseconds")
 	rootCmd.Flags().StringVarP(&effect, "effect", "e", "none", "Visual effect (none, confetti, fireworks, sparkle, rainbow, rainbow-text)")
-	rootCmd.Flags().BoolVar(&thinkMode, "think", false, "Use thought bubble instead of speech bubble")
+	rootCmd.Flags().BoolVar(&thinkMode, "think", false, "Use thought bubble (deprecated: use --bubble-style think)")
+	rootCmd.Flags().StringVar(&bubbleStyleName, "bubble-style", "say", "Bubble style (say, think, shout, whisper, song, code)")
+	rootCmd.Flags().StringVar(&tailDirection, "tail-direction", "down", "Tail direction (down, up, left, right)")
 	rootCmd.Flags().BoolVarP(&listThemes, "list-themes", "T", false, "List available themes")
 	rootCmd.Flags().BoolVarP(&listMoods, "list-moods", "M", false, "List available moods")
 	rootCmd.Flags().BoolVarP(&listEffects, "list-effects", "E", false, "List available effects")
 	rootCmd.Flags().BoolVarP(&listCharacters, "list-characters", "C", false, "List available characters")
+	rootCmd.Flags().BoolVar(&listBubbles, "list-bubbles", false, "List available bubble styles")
 	rootCmd.Flags().BoolVarP(&multipanel, "multipanel", "p", false, "Enable multi-panel mode (experimental)")
 
 	// Character color flags
@@ -94,6 +104,10 @@ func init() {
 	rootCmd.Flags().BoolVar(&idleAnim, "idle", false, "Enable idle animation (blink, breathe)")
 	rootCmd.Flags().IntVar(&animDuration, "duration", 0, "Animation duration in ms (0 = until keypress)")
 	rootCmd.Flags().BoolVar(&listActions, "list-actions", false, "List available character actions")
+
+	// Code bubble flags
+	rootCmd.Flags().StringVar(&codeLanguage, "code-language", "", "Language for syntax highlighting (go, python, javascript, etc.)")
+	rootCmd.Flags().StringVar(&codeStyle, "code-style", "monokai", "Syntax highlighting theme (monokai, dracula, github, etc.)")
 }
 
 // Execute runs the root command
@@ -183,6 +197,19 @@ func runSay(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if listBubbles {
+		fmt.Println("Available bubble styles:")
+		fmt.Println("  - say: Standard speech bubble with < > delimiters")
+		fmt.Println("  - think: Thought bubble with ( ) delimiters and 'o' connector")
+		fmt.Println("  - shout: Jagged bubble with ^v^ border and !!! suffix")
+		fmt.Println("  - whisper: Dotted border with : delimiters and (text)")
+		fmt.Println("  - song: Musical bubble with ♪♫ notes and ~ border")
+		fmt.Println("  - code: Code block with box drawing chars and syntax highlighting")
+		fmt.Println("")
+		fmt.Println("Tail directions: down (default), up, left, right")
+		return nil
+	}
+
 	// Validate flags
 	if err := validateFlags(); err != nil {
 		return fmt.Errorf("invalid flags: %w", err)
@@ -231,16 +258,37 @@ func runSay(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Determine bubble style
-	bubbleStyle := bubble.StyleSay
-	if thinkMode {
-		bubbleStyle = bubble.StyleThink
+	// Determine bubble style (--think is deprecated, --bubble-style takes precedence)
+	bubbleStyleVal := bubble.ParseStyle(bubbleStyleName)
+	if thinkMode && bubbleStyleName == "say" {
+		// Backward compatibility: if --think is set and --bubble-style wasn't explicitly changed
+		bubbleStyleVal = bubble.StyleThink
+	}
+
+	// Determine tail direction
+	tailDir := canvas.TailDown
+	switch strings.ToLower(tailDirection) {
+	case "up":
+		tailDir = canvas.TailUp
+	case "left":
+		tailDir = canvas.TailLeft
+	case "right":
+		tailDir = canvas.TailRight
 	}
 
 	// Convert bubble style to canvas style
 	canvasBubbleStyle := canvas.BubbleStyleSay
-	if thinkMode {
+	switch bubbleStyleVal {
+	case bubble.StyleThink:
 		canvasBubbleStyle = canvas.BubbleStyleThink
+	case bubble.StyleShout:
+		canvasBubbleStyle = canvas.BubbleStyleShout
+	case bubble.StyleWhisper:
+		canvasBubbleStyle = canvas.BubbleStyleWhisper
+	case bubble.StyleSong:
+		canvasBubbleStyle = canvas.BubbleStyleSong
+	case bubble.StyleCode:
+		canvasBubbleStyle = canvas.BubbleStyleCode
 	}
 
 	// Get expression for mood
@@ -325,7 +373,7 @@ func runSay(cmd *cobra.Command, args []string) error {
 
 	// Static rendering path (original behavior)
 	var output []string
-	output = renderer.Render(message, char, bubbleStyle)
+	output = renderer.RenderWithTailDirection(message, char, bubbleStyleVal, tailDir)
 
 	// Apply visual effects (for effects that apply to full output)
 	effectType := effects.Effect(effect)

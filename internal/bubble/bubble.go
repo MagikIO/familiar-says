@@ -3,9 +3,6 @@ package bubble
 import (
 	"strings"
 	"unicode/utf8"
-
-	"github.com/MagikIO/familiar-says/internal/canvas"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Style represents the bubble style
@@ -14,6 +11,10 @@ type Style int
 const (
 	StyleSay Style = iota
 	StyleThink
+	StyleShout
+	StyleWhisper
+	StyleSong
+	StyleCode
 )
 
 // Bubble represents a speech bubble
@@ -119,16 +120,43 @@ func (b *Bubble) padRight(s string, width int) string {
 	return s + strings.Repeat(" ", width-l)
 }
 
-// RenderToCanvas renders the bubble to a Canvas for composition.
-func (b *Bubble) RenderToCanvas(style lipgloss.Style) *canvas.Canvas {
-	lines := b.Render()
-	return canvas.FromLines(lines, style)
+// String returns the string name of the style
+func (s Style) String() string {
+	switch s {
+	case StyleThink:
+		return "think"
+	case StyleShout:
+		return "shout"
+	case StyleWhisper:
+		return "whisper"
+	case StyleSong:
+		return "song"
+	case StyleCode:
+		return "code"
+	default:
+		return "say"
+	}
 }
 
-// ToCanvasStyle converts bubble.Style to canvas.BubbleStyle
-func (s Style) ToCanvasStyle() canvas.BubbleStyle {
-	if s == StyleThink {
-		return canvas.BubbleStyleThink
+// ParseStyle converts a string to a bubble Style
+func ParseStyle(name string) Style {
+	switch strings.ToLower(name) {
+	case "think":
+		return StyleThink
+	case "shout":
+		return StyleShout
+	case "whisper":
+		return StyleWhisper
+	case "song":
+		return StyleSong
+	case "code":
+		return StyleCode
+	default:
+		return StyleSay
 	}
-	return canvas.BubbleStyleSay
+}
+
+// AllStyles returns all available bubble style names
+func AllStyles() []string {
+	return []string{"say", "think", "shout", "whisper", "song", "code"}
 }

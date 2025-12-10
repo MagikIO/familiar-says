@@ -50,6 +50,12 @@ func Merge(base, override *FlagConfig) {
 	if override.Think != nil {
 		base.Think = override.Think
 	}
+	if override.BubbleStyle != nil {
+		base.BubbleStyle = override.BubbleStyle
+	}
+	if override.TailDirection != nil {
+		base.TailDirection = override.TailDirection
+	}
 	if override.Multipanel != nil {
 		base.Multipanel = override.Multipanel
 	}
@@ -61,6 +67,12 @@ func Merge(base, override *FlagConfig) {
 	}
 	if override.MouthColor != nil {
 		base.MouthColor = override.MouthColor
+	}
+	if override.CodeLanguage != nil {
+		base.CodeLanguage = override.CodeLanguage
+	}
+	if override.CodeStyle != nil {
+		base.CodeStyle = override.CodeStyle
 	}
 }
 
@@ -90,6 +102,18 @@ func ApplyToFlags(cfg *FlagConfig, cmd *cobra.Command) {
 	}
 	if cfg.MouthColor != nil && !flags.Changed("mouth-color") {
 		flags.Set("mouth-color", *cfg.MouthColor)
+	}
+	if cfg.BubbleStyle != nil && !flags.Changed("bubble-style") {
+		flags.Set("bubble-style", *cfg.BubbleStyle)
+	}
+	if cfg.TailDirection != nil && !flags.Changed("tail-direction") {
+		flags.Set("tail-direction", *cfg.TailDirection)
+	}
+	if cfg.CodeLanguage != nil && !flags.Changed("code-language") {
+		flags.Set("code-language", *cfg.CodeLanguage)
+	}
+	if cfg.CodeStyle != nil && !flags.Changed("code-style") {
+		flags.Set("code-style", *cfg.CodeStyle)
 	}
 
 	// Apply int flags
