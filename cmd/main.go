@@ -297,6 +297,7 @@ func runSay(cmd *cobra.Command, args []string) error {
 				DefaultEyes:  expr.Eyes,
 				DefaultMouth: expr.Tongue,
 				Duration:     time.Duration(animDuration) * time.Millisecond,
+				Effect:       effects.Effect(effect),
 			}
 
 			// Apply character color overrides

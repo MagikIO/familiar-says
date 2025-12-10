@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/MagikIO/familiar-says/internal/canvas"
+	"github.com/MagikIO/familiar-says/internal/effects"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -27,6 +28,7 @@ type CharacterAnimationConfig struct {
 	TypingSpeed  time.Duration // 0 = no typing animation
 	Duration     time.Duration // 0 = until keypress
 	FrameRate    time.Duration // Character animation frame rate (default 50ms)
+	Effect       effects.Effect // Visual effect to apply
 }
 
 // CharacterModel is a Bubble Tea model for character animation with optional typing.
@@ -151,14 +153,17 @@ func (m CharacterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Advance character animation
 		if m.framePlayer != nil {
 			m.framePlayer.Tick(m.config.FrameRate)
-		}
 
-		// Check if we should exit (non-looping animation complete and typing done)
-		if m.framePlayer != nil && m.framePlayer.IsComplete() && m.typingDone && m.config.Duration == 0 {
-			// For non-looping animations, exit when complete
-			if !m.framePlayer.GetAnimation().Loop {
-				m.done = true
-				return m, tea.Quit
+			// If animation is complete and it's non-looping
+			if m.framePlayer.IsComplete() && !m.framePlayer.GetAnimation().Loop {
+				// If duration is set, restart the animation to loop until duration expires
+				if m.config.Duration > 0 {
+					m.framePlayer.Reset()
+				} else if m.typingDone {
+					// No duration set, exit when animation completes and typing is done
+					m.done = true
+					return m, tea.Quit
+				}
 			}
 		}
 
@@ -203,6 +208,11 @@ func (m CharacterModel) View() string {
 	// Apply typing effect if enabled and not done
 	if m.typingEnabled && !m.typingDone {
 		lines = m.applyTypingEffect(lines)
+	}
+
+	// Apply visual effects
+	if m.config.Effect != "" && m.config.Effect != effects.EffectNone {
+		lines = effects.Apply(lines, m.config.Effect)
 	}
 
 	return strings.Join(lines, "\n")
