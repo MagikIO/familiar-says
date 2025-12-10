@@ -116,7 +116,7 @@ func (m CharacterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case CharacterTickMsg:
 		if m.done {
-			return m, nil
+			return m, tea.Quit
 		}
 
 		now := time.Time(msg)
@@ -130,7 +130,7 @@ func (m CharacterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.totalDuration >= m.config.Duration {
 				m.done = true
 				m.typingDone = true
-				return m, nil
+				return m, tea.Quit
 			}
 		}
 
@@ -158,18 +158,22 @@ func (m CharacterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// For non-looping animations, exit when complete
 			if !m.framePlayer.GetAnimation().Loop {
 				m.done = true
-				return m, nil
+				return m, tea.Quit
 			}
 		}
 
 		return m, m.tick()
 
 	case tea.KeyMsg:
-		// Exit on any key press
+		// Handle Ctrl+C explicitly
+		if msg.Type == tea.KeyCtrlC {
+			return m, tea.Quit
+		}
+		// Exit on any other key press
 		m.done = true
 		m.typingDone = true
 		m.typingIndex = 1000000 // Show all text
-		return m, nil
+		return m, tea.Quit
 	}
 
 	return m, nil
