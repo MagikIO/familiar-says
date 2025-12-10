@@ -30,7 +30,7 @@ func TestDefaultConfig(t *testing.T) {
 
 // TestCompose tests basic composition
 func TestCompose(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Hello, world!"
 	eyes := "^^"
 	mouth := "w"
@@ -62,7 +62,7 @@ func TestCompose(t *testing.T) {
 
 // TestComposeBubbleStyles tests different bubble styles
 func TestComposeBubbleStyles(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Test"
 	config := DefaultConfig()
 
@@ -145,7 +145,7 @@ func TestComposeBubbleStyles(t *testing.T) {
 
 // TestComposeTailDirections tests different tail directions
 func TestComposeTailDirections(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Test"
 	config := DefaultConfig()
 
@@ -203,7 +203,7 @@ func TestComposeTailDirections(t *testing.T) {
 
 // TestComposeLayouts tests different layout modes
 func TestComposeLayouts(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Test message"
 	config := DefaultConfig()
 
@@ -228,7 +228,7 @@ func TestComposeLayouts(t *testing.T) {
 
 // TestComposeWithColors tests color configuration
 func TestComposeWithColors(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Colorful"
 	config := DefaultConfig()
 
@@ -253,7 +253,7 @@ func TestComposeWithColors(t *testing.T) {
 
 // TestComposeWithCharColors tests per-part character colors
 func TestComposeWithCharColors(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Test"
 	config := DefaultConfig()
 
@@ -277,7 +277,7 @@ func TestComposeWithCharColors(t *testing.T) {
 
 // TestComposeConfigEdgeCases tests edge cases in configuration
 func TestComposeConfigEdgeCases(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	text := "Test"
 
 	t.Run("zero bubble width", func(t *testing.T) {
@@ -669,7 +669,7 @@ func TestComposeMultiPanel(t *testing.T) {
 
 // TestComposeLongText tests composition with very long text
 func TestComposeLongText(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	longText := strings.Repeat("This is a very long message that should wrap multiple times. ", 10)
 	config := DefaultConfig()
 	config.BubbleWidth = 30
@@ -688,7 +688,7 @@ func TestComposeLongText(t *testing.T) {
 
 // TestComposeSpecialCharacters tests composition with special characters
 func TestComposeSpecialCharacters(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	config := DefaultConfig()
 
 	specialTexts := []string{

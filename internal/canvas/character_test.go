@@ -124,7 +124,7 @@ func TestLoadCharacterErrors(t *testing.T) {
 
 // TestToCanvasStyled tests rendering with per-part styling
 func TestToCanvasStyled(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	eyes := "^^"
 	mouth := "w"
 
@@ -179,7 +179,7 @@ func TestToCanvasStyled(t *testing.T) {
 
 // TestToCanvas tests the deprecated method
 func TestToCanvas(t *testing.T) {
-	char := builtinCat()
+	char := testCatCharacter()
 	style := lipgloss.NewStyle()
 
 	canvas := char.ToCanvas("^^", "w", style)
@@ -475,7 +475,7 @@ func TestSlotEdgeCases(t *testing.T) {
 	}
 
 	// Test with very wide replacement
-	char2 := builtinCat()
+	char2 := testCatCharacter()
 	canvas2 := char2.ToCanvas("^^^^^^^^^^^^", "w", lipgloss.NewStyle())
 	if canvas2 == nil {
 		t.Error("ToCanvas failed with wide replacement")
