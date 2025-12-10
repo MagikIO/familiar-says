@@ -76,17 +76,22 @@ func TestBubbleTemplateFields(t *testing.T) {
 func TestSongTemplateHasDecorators(t *testing.T) {
 	tmpl := GetTemplate("song")
 
-	if tmpl.Prefix == "" {
-		t.Error("Song template should have a prefix")
+	// Song template should have external decorators (floating outside bubble)
+	if tmpl.ExternalTopLeft == "" {
+		t.Error("Song template should have ExternalTopLeft decorator")
 	}
-	if tmpl.Suffix == "" {
-		t.Error("Song template should have a suffix")
+	if tmpl.ExternalTopRight == "" {
+		t.Error("Song template should have ExternalTopRight decorator")
 	}
-	if tmpl.BorderDecorator == "" {
-		t.Error("Song template should have a border decorator")
+	if tmpl.ExternalBottomLeft == "" {
+		t.Error("Song template should have ExternalBottomLeft decorator")
 	}
-	if !strings.Contains(tmpl.Prefix, "♪") && !strings.Contains(tmpl.Suffix, "♪") {
-		t.Error("Song template should contain musical notes")
+	if tmpl.ExternalBottomRight == "" {
+		t.Error("Song template should have ExternalBottomRight decorator")
+	}
+	// Check for musical notes in external decorators
+	if !strings.Contains(tmpl.ExternalTopLeft, "♪") && !strings.Contains(tmpl.ExternalBottomLeft, "♫") {
+		t.Error("Song template should contain musical notes in external decorators")
 	}
 }
 

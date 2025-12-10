@@ -154,15 +154,28 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 		}
 	}
 
+	// Check if we have external decorators
+	hasExternalDecorators := tmpl.ExternalTopLeft != "" || tmpl.ExternalTopRight != "" ||
+		tmpl.ExternalBottomLeft != "" || tmpl.ExternalBottomRight != ""
+
+	// Content line prefix for alignment when external decorators are present
+	contentPrefix := ""
+	contentSuffix := ""
+	if hasExternalDecorators {
+		contentPrefix = "  " // 2 spaces to align with external decorator + space
+		contentSuffix = "  "
+	}
+
 	bubbleLines := []string{}
 
 	// Build top border
-	topBorder := buildBorder(tmpl.TopBorder, maxLen+2, tmpl.TopLeftCorner, tmpl.TopRightCorner, tmpl.BorderDecorator)
+	topBorder := buildBorderWithExternal(tmpl.TopBorder, maxLen+2, tmpl.TopLeftCorner, tmpl.TopRightCorner,
+		tmpl.BorderDecorator, tmpl.ExternalTopLeft, tmpl.ExternalTopRight)
 	bubbleLines = append(bubbleLines, topBorder)
 
 	// Content lines
 	if len(lines) == 1 {
-		bubbleLines = append(bubbleLines, tmpl.SingleLeft+" "+padRight(lines[0], maxLen)+" "+tmpl.SingleRight)
+		bubbleLines = append(bubbleLines, contentPrefix+tmpl.SingleLeft+" "+padRight(lines[0], maxLen)+" "+tmpl.SingleRight+contentSuffix)
 	} else {
 		for i, line := range lines {
 			padded := padRight(line, maxLen)
@@ -174,19 +187,20 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 			} else {
 				left, right = tmpl.MultiMiddle[0], tmpl.MultiMiddle[1]
 			}
-			bubbleLines = append(bubbleLines, left+" "+padded+" "+right)
+			bubbleLines = append(bubbleLines, contentPrefix+left+" "+padded+" "+right+contentSuffix)
 		}
 	}
 
 	// Build bottom border
-	bottomBorder := buildBorder(tmpl.BottomBorder, maxLen+2, tmpl.BottomLeftCorner, tmpl.BottomRightCorner, tmpl.BorderDecorator)
+	bottomBorder := buildBorderWithExternal(tmpl.BottomBorder, maxLen+2, tmpl.BottomLeftCorner, tmpl.BottomRightCorner,
+		tmpl.BorderDecorator, tmpl.ExternalBottomLeft, tmpl.ExternalBottomRight)
 	bubbleLines = append(bubbleLines, bottomBorder)
 
 	return bubbleLines
 }
 
-// buildBorder creates a border line with optional corner characters and decorators
-func buildBorder(borderChar string, length int, leftCorner, rightCorner, decorator string) string {
+// buildBorderWithExternal creates a border line with optional corner characters, decorators, and external decorators
+func buildBorderWithExternal(borderChar string, length int, leftCorner, rightCorner, decorator, externalLeft, externalRight string) string {
 	// Handle defaults
 	if leftCorner == "" {
 		leftCorner = " "
@@ -204,7 +218,27 @@ func buildBorder(borderChar string, length int, leftCorner, rightCorner, decorat
 		middle = repeat(borderChar, length)
 	}
 
-	return leftCorner + middle + rightCorner
+	baseBorder := leftCorner + middle + rightCorner
+
+	// Add external decorators if present
+	if externalLeft != "" || externalRight != "" {
+		left := externalLeft
+		right := externalRight
+		if left == "" {
+			left = " "
+		}
+		if right == "" {
+			right = " "
+		}
+		return left + " " + baseBorder + " " + right
+	}
+
+	return baseBorder
+}
+
+// buildBorder creates a border line with optional corner characters and decorators
+func buildBorder(borderChar string, length int, leftCorner, rightCorner, decorator string) string {
+	return buildBorderWithExternal(borderChar, length, leftCorner, rightCorner, decorator, "", "")
 }
 
 // buildDecoratedBorder creates a border with decorators interspersed

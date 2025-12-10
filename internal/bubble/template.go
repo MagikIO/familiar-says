@@ -79,6 +79,12 @@ type BubbleTemplate struct {
 	// Border decorators (interspersed in borders)
 	BorderDecorator string `json:"borderDecorator,omitempty"` // e.g., "♪" for musical notes on border
 
+	// External decorators (floating outside bubble corners)
+	ExternalTopLeft     string `json:"externalTopLeft,omitempty"`     // e.g., "♪" floating outside top-left
+	ExternalTopRight    string `json:"externalTopRight,omitempty"`    // e.g., "♪" floating outside top-right
+	ExternalBottomLeft  string `json:"externalBottomLeft,omitempty"`  // e.g., "♫" floating outside bottom-left
+	ExternalBottomRight string `json:"externalBottomRight,omitempty"` // e.g., "♫" floating outside bottom-right
+
 	// For code blocks
 	IsCodeBlock     bool   `json:"isCodeBlock,omitempty"`
 	CodeLanguage    string `json:"codeLanguage,omitempty"` // Optional language hint
@@ -139,18 +145,19 @@ var builtinTemplates = map[string]*BubbleTemplate{
 		Suffix:       ")",
 	},
 	"song": {
-		Name:            "song",
-		TopBorder:       "~",
-		BottomBorder:    "~",
-		BorderDecorator: "♪",
-		SingleLeft:      "♪",
-		SingleRight:     "♫",
-		MultiFirst:      [2]string{"♪", "♫"},
-		MultiMiddle:     [2]string{"♫", "♪"},
-		MultiLast:       [2]string{"♪", "♫"},
-		Connector:       "♪",
-		Prefix:          "♪ ",
-		Suffix:          " ♫",
+		Name:                "song",
+		TopBorder:           "_",
+		BottomBorder:        "-",
+		SingleLeft:          "<",
+		SingleRight:         ">",
+		MultiFirst:          [2]string{"/", "\\"},
+		MultiMiddle:         [2]string{"|", "|"},
+		MultiLast:           [2]string{"\\", "/"},
+		Connector:           "\\",
+		ExternalTopLeft:     "♪",
+		ExternalTopRight:    "♪",
+		ExternalBottomLeft:  "♫",
+		ExternalBottomRight: "♫",
 	},
 	"code": {
 		Name:            "code",
