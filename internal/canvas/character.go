@@ -332,16 +332,19 @@ func GetBuiltinCharacter(name string) (*Character, bool) {
 // ListBuiltinCharacters returns the names of all built-in characters.
 func ListBuiltinCharacters() []string {
 	return []string{
-		"cat",
-		"owl",
-		"fox",
-		"bunny",
-		"penguin",
-		"dragon",
-		"robot",
+		"apt",
 		"bat",
-		"turtle",
+		"bear",
+		"bunny",
+		"cat",
 		"default",
+		"dragon",
+		"fox",
+		"owl",
+		"penguin",
+		"robot",
+		"suse",
+		"turtle",
 	}
 }
 
