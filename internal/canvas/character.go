@@ -25,15 +25,33 @@ type Anchor struct {
 	Y int `json:"y"` // Row where connector attaches (usually 0 = top)
 }
 
+// AnimationFrame represents a single frame in a character animation.
+type AnimationFrame struct {
+	DurationMs int      `json:"duration"`          // Duration in milliseconds
+	Art        []string `json:"art,omitempty"`     // Full art override (optional)
+	Eyes       string   `json:"eyes,omitempty"`    // Eyes expression override (optional)
+	Mouth      string   `json:"mouth,omitempty"`   // Mouth expression override (optional)
+	OffsetX    int      `json:"offsetX,omitempty"` // Horizontal offset from base position
+	OffsetY    int      `json:"offsetY,omitempty"` // Vertical offset from base position
+}
+
+// AnimationSequence defines a named animation sequence for a character.
+type AnimationSequence struct {
+	Frames []AnimationFrame `json:"frames"`
+	Loop   bool             `json:"loop"`
+}
+
 // Character represents a familiar/animal character with ASCII art and expression slots.
 type Character struct {
-	Name        string           `json:"name"`
-	Description string           `json:"description,omitempty"`
-	Art         []string         `json:"art"`             // Raw ASCII art lines
-	Anchor      Anchor           `json:"anchor"`          // Where the thought/speech connector joins
-	Eyes        *Slot            `json:"eyes,omitempty"`  // Where to insert eyes (nil if no eyes)
-	Mouth       *Slot            `json:"mouth,omitempty"` // Where to insert mouth/tongue (nil if none)
-	Colors      *CharacterColors `json:"colors,omitempty"` // Default colors for character parts
+	Name             string                        `json:"name"`
+	Description      string                        `json:"description,omitempty"`
+	Art              []string                      `json:"art"`                       // Raw ASCII art lines
+	Anchor           Anchor                        `json:"anchor"`                    // Where the thought/speech connector joins
+	Eyes             *Slot                         `json:"eyes,omitempty"`            // Where to insert eyes (nil if no eyes)
+	Mouth            *Slot                         `json:"mouth,omitempty"`           // Where to insert mouth/tongue (nil if none)
+	Colors           *CharacterColors              `json:"colors,omitempty"`          // Default colors for character parts
+	Animations       map[string]*AnimationSequence `json:"animations,omitempty"`      // Named animation sequences
+	DefaultAnimation string                        `json:"defaultAnimation,omitempty"` // Default animation to play (e.g., "idle")
 }
 
 // LoadCharacter loads a character from a JSON file.
@@ -224,10 +242,11 @@ func (ch *Character) Height() int {
 // Clone creates a deep copy of the character.
 func (ch *Character) Clone() *Character {
 	clone := &Character{
-		Name:        ch.Name,
-		Description: ch.Description,
-		Art:         make([]string, len(ch.Art)),
-		Anchor:      ch.Anchor,
+		Name:             ch.Name,
+		Description:      ch.Description,
+		Art:              make([]string, len(ch.Art)),
+		Anchor:           ch.Anchor,
+		DefaultAnimation: ch.DefaultAnimation,
 	}
 	copy(clone.Art, ch.Art)
 
@@ -239,8 +258,52 @@ func (ch *Character) Clone() *Character {
 		mouth := *ch.Mouth
 		clone.Mouth = &mouth
 	}
+	if ch.Colors != nil {
+		colors := *ch.Colors
+		clone.Colors = &colors
+	}
+	if ch.Animations != nil {
+		clone.Animations = make(map[string]*AnimationSequence, len(ch.Animations))
+		for name, anim := range ch.Animations {
+			clonedAnim := &AnimationSequence{
+				Frames: make([]AnimationFrame, len(anim.Frames)),
+				Loop:   anim.Loop,
+			}
+			copy(clonedAnim.Frames, anim.Frames)
+			clone.Animations[name] = clonedAnim
+		}
+	}
 
 	return clone
+}
+
+// GetAnimation returns the animation sequence by name, or nil if not found.
+func (ch *Character) GetAnimation(name string) *AnimationSequence {
+	if ch.Animations == nil {
+		return nil
+	}
+	return ch.Animations[name]
+}
+
+// HasAnimation returns true if the character has the named animation.
+func (ch *Character) HasAnimation(name string) bool {
+	if ch.Animations == nil {
+		return false
+	}
+	_, ok := ch.Animations[name]
+	return ok
+}
+
+// ListAnimations returns the names of all animations defined for this character.
+func (ch *Character) ListAnimations() []string {
+	if ch.Animations == nil {
+		return nil
+	}
+	names := make([]string, 0, len(ch.Animations))
+	for name := range ch.Animations {
+		names = append(names, name)
+	}
+	return names
 }
 
 // BuiltinCharacters returns a map of built-in character definitions.

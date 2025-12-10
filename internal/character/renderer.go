@@ -71,19 +71,14 @@ func (r *Renderer) RenderByName(text string, name string, style bubble.Style) ([
 	return r.Render(text, char, style), nil
 }
 
-// LoadCharacter loads a character by name. It first checks builtin characters,
-// then looks for a JSON file in common locations.
+// LoadCharacter loads a character by name. It first tries to load from JSON files
+// (which may have animations), then falls back to builtin characters.
 func LoadCharacter(name string) (*canvas.Character, error) {
 	// Normalize the name
 	name = strings.ToLower(strings.TrimSpace(name))
 
 	if name == "" {
 		return nil, customerrors.NewValidationError("character name", name, "cannot be empty")
-	}
-
-	// Check if it's a builtin character
-	if char, ok := canvas.GetBuiltinCharacter(name); ok {
-		return char, nil
 	}
 
 	// Check if it's a file path
@@ -95,25 +90,23 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 		return char, nil
 	}
 
-	// Try to find a JSON file
+	// Try to find a JSON file first (these have animations)
 	searchPaths := []string{
 		name + ".json",
 		"characters/" + name + ".json",
 		filepath.Join("characters", name+".json"),
 	}
 
-	var lastErr error
 	for _, path := range searchPaths {
 		char, err := canvas.LoadCharacter(path)
 		if err == nil {
 			return char, nil
 		}
-		lastErr = err
 	}
 
-	// If we got here, none of the paths worked
-	if lastErr != nil {
-		return nil, customerrors.NewCharacterLoadError(name, lastErr, searchPaths...)
+	// Fall back to builtin character (no animations)
+	if char, ok := canvas.GetBuiltinCharacter(name); ok {
+		return char, nil
 	}
 
 	return nil, customerrors.NewCharacterLoadError(name, errors.New("character not found in any standard location"))

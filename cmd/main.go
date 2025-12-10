@@ -43,6 +43,12 @@ var (
 
 	// Profile flag
 	profileName string
+
+	// Character animation flags
+	actionName   string
+	idleAnim     bool
+	animDuration int
+	listActions  bool
 )
 
 var rootCmd = &cobra.Command{
@@ -82,6 +88,12 @@ func init() {
 
 	// Profile flag
 	rootCmd.Flags().StringVar(&profileName, "profile", "", "Configuration profile to use")
+
+	// Character animation flags
+	rootCmd.Flags().StringVar(&actionName, "action", "none", "Character action animation (wave, jump, blink, etc.)")
+	rootCmd.Flags().BoolVar(&idleAnim, "idle", false, "Enable idle animation (blink, breathe)")
+	rootCmd.Flags().IntVar(&animDuration, "duration", 0, "Animation duration in ms (0 = until keypress)")
+	rootCmd.Flags().BoolVar(&listActions, "list-actions", false, "List available character actions")
 }
 
 // Execute runs the root command
@@ -163,6 +175,14 @@ func runSay(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if listActions {
+		fmt.Println("Available character actions:")
+		for _, a := range animation.AllActions() {
+			fmt.Printf("  - %s: %s\n", a, animation.GetActionDescription(a))
+		}
+		return nil
+	}
+
 	// Validate flags
 	if err := validateFlags(); err != nil {
 		return fmt.Errorf("invalid flags: %w", err)
@@ -217,23 +237,100 @@ func runSay(cmd *cobra.Command, args []string) error {
 		bubbleStyle = bubble.StyleThink
 	}
 
-	// Render with character
-	var output []string
-	var err error
+	// Convert bubble style to canvas style
+	canvasBubbleStyle := canvas.BubbleStyleSay
+	if thinkMode {
+		canvasBubbleStyle = canvas.BubbleStyleThink
+	}
+
+	// Get expression for mood
+	expr := theme.GetExpression(mood)
+
+	// Check if character animation is requested
+	wantCharAnim := (actionName != "" && actionName != "none") || idleAnim
+
+	// Load character if specified
+	var char *canvas.Character
 	if characterName != "" {
-		output, err = renderer.RenderByName(message, characterName, bubbleStyle)
-		if err != nil {
-			return fmt.Errorf("failed to load character: %w", err)
+		var loadErr error
+		char, loadErr = character.LoadCharacter(characterName)
+		if loadErr != nil {
+			return fmt.Errorf("failed to load character: %w", loadErr)
 		}
 	} else {
-		output = renderer.RenderDefault(message, bubbleStyle)
+		char, _ = canvas.GetBuiltinCharacter("default")
 	}
+
+	// Handle character animation mode
+	if wantCharAnim {
+		// Determine which animation to use
+		var anim *canvas.AnimationSequence
+
+		// Priority: explicit action > idle > character default
+		if actionName != "" && actionName != "none" {
+			anim = char.GetAnimation(actionName)
+			if anim == nil {
+				// Action not found for this character, warn and fall back to static
+				fmt.Fprintf(os.Stderr, "Warning: character '%s' does not have animation '%s', using static render\n", char.Name, actionName)
+			}
+		} else if idleAnim {
+			// Try idle animation, then blink, then character's default
+			anim = char.GetAnimation("idle")
+			if anim == nil {
+				anim = char.GetAnimation("blink")
+			}
+			if anim == nil && char.DefaultAnimation != "" {
+				anim = char.GetAnimation(char.DefaultAnimation)
+			}
+		}
+
+		if anim != nil {
+			// Configure character animation
+			config := animation.CharacterAnimationConfig{
+				Character:    char,
+				Animation:    anim,
+				BubbleText:   message,
+				BubbleWidth:  bubbleWidth,
+				BubbleStyle:  canvasBubbleStyle,
+				BubbleColor:  theme.BubbleStyle,
+				CharColor:    theme.CharacterStyle,
+				DefaultEyes:  expr.Eyes,
+				DefaultMouth: expr.Tongue,
+				Duration:     time.Duration(animDuration) * time.Millisecond,
+			}
+
+			// Apply character color overrides
+			if outlineColor != "" || eyeColor != "" || mouthColor != "" {
+				config.CharColors = &canvas.CharacterColors{
+					Outline: outlineColor,
+					Eyes:    eyeColor,
+					Mouth:   mouthColor,
+				}
+			}
+
+			// Enable typing animation if --animate is set
+			if animate {
+				config.TypingSpeed = time.Duration(animSpeed) * time.Millisecond
+			}
+
+			// Run the character animation
+			if err := animation.AnimateCharacter(config); err != nil {
+				return fmt.Errorf("character animation failed: %w", err)
+			}
+			return nil
+		}
+		// Fall through to static rendering if no animation found
+	}
+
+	// Static rendering path (original behavior)
+	var output []string
+	output = renderer.Render(message, char, bubbleStyle)
 
 	// Apply visual effects (for effects that apply to full output)
 	effectType := effects.Effect(effect)
 	output = effects.Apply(output, effectType)
 
-	// Handle animation
+	// Handle typing animation
 	if animate {
 		speed := time.Duration(animSpeed) * time.Millisecond
 		if err := animation.Animate(output, animation.AnimationTyping, speed); err != nil {
@@ -275,6 +372,16 @@ func validateFlags() error {
 	}
 	if mouthColor != "" && !canvas.ValidateColor(mouthColor) {
 		return customerrors.NewColorParseError(mouthColor, nil)
+	}
+
+	// Validate action if provided
+	if actionName != "" && actionName != "none" && !animation.ValidateAction(actionName) {
+		return customerrors.NewValidationError("action", actionName, "unknown action. Use --list-actions to see available actions")
+	}
+
+	// Validate duration
+	if animDuration < 0 {
+		return customerrors.NewValidationError("duration", animDuration, "must be non-negative")
 	}
 
 	return nil

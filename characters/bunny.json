@@ -16,5 +16,51 @@
   "colors": {
     "outline": "#FFC0CB",
     "eyes": "#FF69B4"
-  }
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        {"duration": 2000, "eyes": "@@"},
+        {"duration": 150, "eyes": "--"}
+      ],
+      "loop": true
+    },
+    "blink": {
+      "frames": [
+        {"duration": 1800, "eyes": "@@"},
+        {"duration": 100, "eyes": "--"},
+        {"duration": 100, "eyes": "@@"}
+      ],
+      "loop": true
+    },
+    "ear_wiggle": {
+      "frames": [
+        {"duration": 200, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 200, "art": ["  (\\(\\ ", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 200, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 200, "art": ["(\\(\\   ", " ( @@) ", " c(\")(\")"  ]}
+      ],
+      "loop": true
+    },
+    "hop": {
+      "frames": [
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ], "offsetY": 0},
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ], "offsetY": -1},
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ], "offsetY": 0}
+      ],
+      "loop": false
+    },
+    "wave": {
+      "frames": [
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@)o", " c(\")(\")"  ]},
+        {"duration": 150, "art": [" (\\(\\ o", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 150, "art": [" (\\(\\o ", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 150, "art": [" (\\(\\ o", " ( @@) ", " c(\")(\")"  ]},
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@)o", " c(\")(\")"  ]},
+        {"duration": 150, "art": [" (\\(\\  ", " ( @@) ", " c(\")(\")"  ]}
+      ],
+      "loop": false
+    }
+  },
+  "defaultAnimation": "idle"
 }

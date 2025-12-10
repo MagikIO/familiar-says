@@ -23,5 +23,41 @@
   "colors": {
     "eyes": "#7CFC00",
     "mouth": "#FF69B4"
-  }
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        {"duration": 2500, "eyes": "@@"},
+        {"duration": 150, "eyes": "--"}
+      ],
+      "loop": true
+    },
+    "blink": {
+      "frames": [
+        {"duration": 2000, "eyes": "@@"},
+        {"duration": 100, "eyes": "--"},
+        {"duration": 100, "eyes": "@@"}
+      ],
+      "loop": true
+    },
+    "tail_wag": {
+      "frames": [
+        {"duration": 200, "art": ["  /\\_/\\  ", " ( @@ ) ", " =( Y )=", "   ^ ^~ "]},
+        {"duration": 200, "art": ["  /\\_/\\  ", " ( @@ ) ", " =( Y )=", "  ~^ ^  "]}
+      ],
+      "loop": true
+    },
+    "wave": {
+      "frames": [
+        {"duration": 150, "art": ["  /\\_/\\  ", " ( @@ )o", " =( Y )=", "   ^ ^  "]},
+        {"duration": 150, "art": ["  /\\_/\\ o", " ( @@ ) ", " =( Y )=", "   ^ ^  "]},
+        {"duration": 150, "art": ["  /\\_/\\o ", " ( @@ ) ", " =( Y )=", "   ^ ^  "]},
+        {"duration": 150, "art": ["  /\\_/\\ o", " ( @@ ) ", " =( Y )=", "   ^ ^  "]},
+        {"duration": 150, "art": ["  /\\_/\\  ", " ( @@ )o", " =( Y )=", "   ^ ^  "]},
+        {"duration": 150, "art": ["  /\\_/\\  ", " ( @@ ) ", " =( Y )=", "   ^ ^  "]}
+      ],
+      "loop": false
+    }
+  },
+  "defaultAnimation": "idle"
 }

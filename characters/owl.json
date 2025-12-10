@@ -16,5 +16,43 @@
   },
   "colors": {
     "eyes": "#FFD700"
-  }
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        {"duration": 3000, "eyes": "@@"},
+        {"duration": 150, "eyes": "--"}
+      ],
+      "loop": true
+    },
+    "blink": {
+      "frames": [
+        {"duration": 2500, "eyes": "@@"},
+        {"duration": 100, "eyes": "--"},
+        {"duration": 100, "eyes": "@@"}
+      ],
+      "loop": true
+    },
+    "head_tilt": {
+      "frames": [
+        {"duration": 400, "art": ["  ,_,  ", " (@@)  ", " /)_)  ", "  \"\"   "]},
+        {"duration": 400, "art": [" ,_,   ", "(@@)   ", "/)_)   ", " \"\"    "]},
+        {"duration": 400, "art": ["  ,_,  ", " (@@)  ", " /)_)  ", "  \"\"   "]},
+        {"duration": 400, "art": ["   ,_,  ", "  (@@)  ", "  /)_)  ", "   \"\"   "]}
+      ],
+      "loop": true
+    },
+    "wave": {
+      "frames": [
+        {"duration": 150, "art": ["  ,_,  ", " (@@)o ", " /)_)  ", "  \"\"   "]},
+        {"duration": 150, "art": ["  ,_, o", " (@@)  ", " /)_)  ", "  \"\"   "]},
+        {"duration": 150, "art": ["  ,_,o ", " (@@)  ", " /)_)  ", "  \"\"   "]},
+        {"duration": 150, "art": ["  ,_, o", " (@@)  ", " /)_)  ", "  \"\"   "]},
+        {"duration": 150, "art": ["  ,_,  ", " (@@)o ", " /)_)  ", "  \"\"   "]},
+        {"duration": 150, "art": ["  ,_,  ", " (@@)  ", " /)_)  ", "  \"\"   "]}
+      ],
+      "loop": false
+    }
+  },
+  "defaultAnimation": "idle"
 }

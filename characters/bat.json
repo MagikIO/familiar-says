@@ -24,5 +24,41 @@
   "colors": {
     "outline": "#4B0082",
     "eyes": "#FF0000"
-  }
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        {"duration": 2500, "eyes": "@@@"},
+        {"duration": 150, "eyes": "---"}
+      ],
+      "loop": true
+    },
+    "blink": {
+      "frames": [
+        {"duration": 2000, "eyes": "@@@"},
+        {"duration": 100, "eyes": "---"},
+        {"duration": 100, "eyes": "@@@"}
+      ],
+      "loop": true
+    },
+    "wing_flap": {
+      "frames": [
+        {"duration": 150, "art": [" /\\   /\\ ", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": ["/\\     /\\", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": [" /\\   /\\ ", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": ["  /\\ /\\  ", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]}
+      ],
+      "loop": true
+    },
+    "wave": {
+      "frames": [
+        {"duration": 150, "art": [" /\\   /\\o", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": [" /\\   /\\ ", "{  @@@ o}", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": [" /\\   /\\o", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]},
+        {"duration": 150, "art": [" /\\   /\\ ", "{  @@@  }", " \\  Y  / ", "  \\   /  ", "   \\_/   "]}
+      ],
+      "loop": false
+    }
+  },
+  "defaultAnimation": "idle"
 }
