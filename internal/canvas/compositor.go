@@ -140,7 +140,20 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 		text = tmpl.Prefix + text + tmpl.Suffix
 	}
 
-	lines := wrapText(text, width)
+	lines, _ := FrameBubble(wrapText(text, width), tmpl)
+	return lines
+}
+
+// WrapText wraps text to fit within the given display width.
+func WrapText(text string, width int) []string {
+	return wrapText(text, width)
+}
+
+// FrameBubble draws a template's border around already-wrapped lines.
+// It returns the framed rows and the column at which the content starts, so
+// callers that animate the text (typewriter reveals, per-rune colouring) can
+// address the content cells without re-deriving the template's geometry.
+func FrameBubble(lines []string, tmpl *bubble.BubbleTemplate) ([]string, int) {
 	if len(lines) == 0 {
 		lines = []string{""}
 	}
@@ -167,6 +180,7 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 	}
 
 	bubbleLines := []string{}
+	contentX := 0
 
 	// Build top border
 	topBorder := buildBorderWithExternal(tmpl.TopBorder, maxLen+2, tmpl.TopLeftCorner, tmpl.TopRightCorner,
@@ -175,6 +189,7 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 
 	// Content lines
 	if len(lines) == 1 {
+		contentX = StringWidth(contentPrefix+tmpl.SingleLeft) + 1
 		bubbleLines = append(bubbleLines, contentPrefix+tmpl.SingleLeft+" "+padRight(lines[0], maxLen)+" "+tmpl.SingleRight+contentSuffix)
 	} else {
 		for i, line := range lines {
@@ -187,6 +202,7 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 			} else {
 				left, right = tmpl.MultiMiddle[0], tmpl.MultiMiddle[1]
 			}
+			contentX = StringWidth(contentPrefix+left) + 1
 			bubbleLines = append(bubbleLines, contentPrefix+left+" "+padded+" "+right+contentSuffix)
 		}
 	}
@@ -196,7 +212,7 @@ func renderBubbleWithTemplate(text string, width int, tmpl *bubble.BubbleTemplat
 		tmpl.BorderDecorator, tmpl.ExternalBottomLeft, tmpl.ExternalBottomRight)
 	bubbleLines = append(bubbleLines, bottomBorder)
 
-	return bubbleLines
+	return bubbleLines, contentX
 }
 
 // buildBorderWithExternal creates a border line with optional corner characters, decorators, and external decorators

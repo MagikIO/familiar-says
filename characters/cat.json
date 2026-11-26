@@ -14,9 +14,15 @@
     "            \\_)      "
   ],
   "anchor": {"x": 10, "y": 0},
+  "eyes": {
+    "line": 1,
+    "col": 11,
+    "width": 3,
+    "placeholder": "oYo"
+  },
   "mouth": {
     "line": 2,
-    "col": 13,
+    "col": 12,
     "width": 1,
     "placeholder": "^"
   },
@@ -24,6 +30,8 @@
     "eyes": "#7CFC00",
     "mouth": "#FF69B4"
   },
+  "expressions": {"neutral": {"eyes": "oYo"}, "happy": {"eyes": "^Y^"}, "sad": {"eyes": "TYT"}, "angry": {"eyes": ">Y<"}, "surprised": {"eyes": "OYO"}, "bored": {"eyes": "-Yo"}, "excited": {"eyes": "*Y*"}, "sleepy": {"eyes": "uYu"}, "closed": {"eyes": "-Y-"}},
+  "live": {"facing": "front", "speed": 6, "gait": "tail_wag", "fidgets": ["ear_wiggle", "tail_wag"], "sounds": ["Meow.", "Mrrp?", "*purrs*", "*knocks a pen off the desk*"]},
   "animations": {
     "idle": {
       "frames": [

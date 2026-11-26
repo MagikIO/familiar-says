@@ -41,6 +41,25 @@ type AnimationSequence struct {
 	Loop   bool             `json:"loop"`
 }
 
+// LiveTraits describes how a character behaves when it is running around in
+// live mode. Every field is optional; the zero value is a front-facing walker.
+type LiveTraits struct {
+	Facing     string   `json:"facing,omitempty"`     // Which way the art looks: "left", "right" or "front" (symmetric)
+	Locomotion string   `json:"locomotion,omitempty"` // "walk" (default), "hop" or "fly"
+	Speed      float64  `json:"speed,omitempty"`      // Cells per second when moving
+	Gait       string   `json:"gait,omitempty"`       // Looping animation to play while moving
+	Fidgets    []string `json:"fidgets,omitempty"`    // Animations to play when idling
+	Sounds     []string `json:"sounds,omitempty"`     // Noises it makes when it has nothing better to say
+	Tic        string   `json:"tic,omitempty"`        // Verbal tic occasionally appended to what it says
+}
+
+// Face is a character's own way of showing a mood. Empty fields fall back to
+// the theme's expression.
+type Face struct {
+	Eyes  string `json:"eyes,omitempty"`
+	Mouth string `json:"mouth,omitempty"`
+}
+
 // Character represents a familiar/animal character with ASCII art and expression slots.
 type Character struct {
 	Name             string                        `json:"name"`
@@ -52,6 +71,34 @@ type Character struct {
 	Colors           *CharacterColors              `json:"colors,omitempty"`          // Default colors for character parts
 	Animations       map[string]*AnimationSequence `json:"animations,omitempty"`      // Named animation sequences
 	DefaultAnimation string                        `json:"defaultAnimation,omitempty"` // Default animation to play (e.g., "idle")
+	Live             *LiveTraits                   `json:"live,omitempty"`             // Behaviour in live mode
+
+	// Expressions gives the character faces of its own, by mood name
+	// (happy, sad, angry, surprised, bored, excited, neutral, sleepy), plus
+	// "closed" for blinking and sleeping. They take precedence over the
+	// theme's, which lets art with unusual eyes keep its look.
+	Expressions map[string]Face `json:"expressions,omitempty"`
+}
+
+// Expression resolves the eyes and mouth to draw for a mood, preferring the
+// character's own face over the theme's.
+func (ch *Character) Expression(mood, themeEyes, themeMouth string) (eyes, mouth string) {
+	eyes, mouth = themeEyes, themeMouth
+	// Themes leave the mouth blank. Where the slot's placeholder is part of
+	// the drawing (a cat's nose) rather than the stock "Y", blanking it
+	// would erase art, so it stays.
+	if s := ch.Mouth; s != nil && strings.TrimSpace(mouth) == "" && strings.Trim(s.Placeholder, "Y") != "" {
+		mouth = s.Placeholder
+	}
+	if face, ok := ch.Expressions[mood]; ok {
+		if face.Eyes != "" {
+			eyes = face.Eyes
+		}
+		if face.Mouth != "" {
+			mouth = face.Mouth
+		}
+	}
+	return eyes, mouth
 }
 
 // LoadCharacter loads a character from a JSON file.
@@ -194,6 +241,17 @@ func replaceSlot(line string, slot *Slot, value string) string {
 		return line
 	}
 
+	// A blank expression (themes use a two-space "no tongue") must not be
+	// wider than the slot, or everything to its right shifts out of line.
+	if strings.TrimSpace(value) == "" {
+		value = strings.Repeat(" ", slot.Width)
+	}
+
+	// A one-cell slot is a single eye: draw one eye of the pair.
+	if slot.Width == 1 {
+		value = OneGlyph(value)
+	}
+
 	// Center the value within the slot width
 	valueWidth := StringWidth(value)
 	slotWidth := slot.Width
@@ -262,6 +320,18 @@ func (ch *Character) Clone() *Character {
 		colors := *ch.Colors
 		clone.Colors = &colors
 	}
+	if ch.Expressions != nil {
+		clone.Expressions = make(map[string]Face, len(ch.Expressions))
+		for mood, face := range ch.Expressions {
+			clone.Expressions[mood] = face
+		}
+	}
+	if ch.Live != nil {
+		live := *ch.Live
+		live.Fidgets = append([]string(nil), ch.Live.Fidgets...)
+		live.Sounds = append([]string(nil), ch.Live.Sounds...)
+		clone.Live = &live
+	}
 	if ch.Animations != nil {
 		clone.Animations = make(map[string]*AnimationSequence, len(ch.Animations))
 		for name, anim := range ch.Animations {
@@ -327,4 +397,18 @@ func GetBuiltinCharacter(name string) (*Character, bool) {
 // ListBuiltinCharacters returns the names of all available characters.
 func ListBuiltinCharacters() []string {
 	return ListEmbeddedCharacters()
+}
+
+// OneGlyph reduces an expression such as "^^" or "[o_o]" to the single glyph
+// that carries it, for slots only one cell wide.
+func OneGlyph(expr string) string {
+	if StringWidth(expr) <= 1 {
+		return expr
+	}
+	for _, r := range expr {
+		if !strings.ContainsRune("[](){}<> _", r) && StringWidth(string(r)) == 1 {
+			return string(r)
+		}
+	}
+	return string([]rune(expr)[:1])
 }

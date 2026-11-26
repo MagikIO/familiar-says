@@ -29,6 +29,7 @@
     "eyes": "#00FFFF",
     "mouth": "#00FF00"
   },
+  "live": {"facing": "front", "speed": 6, "gait": "antenna_spin", "fidgets": ["antenna_spin"], "sounds": ["Beep.", "Boop.", "*whirr*", "01101000 01101001"], "tic": "Beep."},
   "animations": {
     "idle": {
       "frames": [

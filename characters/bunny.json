@@ -17,6 +17,7 @@
     "outline": "#FFC0CB",
     "eyes": "#FF69B4"
   },
+  "live": {"facing": "right", "locomotion": "hop", "speed": 9, "fidgets": ["ear_wiggle"], "sounds": ["*nose twitch*", "*thump*", "Mip."]},
   "animations": {
     "idle": {
       "frames": [

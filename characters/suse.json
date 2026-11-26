@@ -9,10 +9,10 @@
   ],
   "anchor": {"x": 3, "y": 0},
   "eyes": {
-    "line": 3,
-    "col": 9,
-    "width": 2,
-    "placeholder": "@@"
+    "line": 1,
+    "col": 2,
+    "width": 1,
+    "placeholder": "@"
   },
   "mouth": {
     "line": 2,
@@ -24,19 +24,21 @@
     "outline": "#73BA25",
     "eyes": "#73BA25"
   },
+  "expressions": {"neutral": {"eyes": "@"}, "happy": {"eyes": "^"}, "sad": {"eyes": "T"}, "angry": {"eyes": ">"}, "surprised": {"eyes": "O"}, "bored": {"eyes": "-"}, "excited": {"eyes": "*"}, "sleepy": {"eyes": "."}, "closed": {"eyes": "-"}},
+  "live": {"facing": "left", "speed": 3, "gait": "tail_wag", "fidgets": ["tongue_flick", "tail_wag"], "sounds": ["*blends in*", "*eyes swivel independently*", "Geeko."]},
   "animations": {
     "idle": {
       "frames": [
-        {"duration": 2500, "eyes": "@@"},
-        {"duration": 150, "eyes": "--"}
+        {"duration": 2500, "eyes": "@"},
+        {"duration": 150, "eyes": "-"}
       ],
       "loop": true
     },
     "blink": {
       "frames": [
-        {"duration": 2000, "eyes": "@@"},
-        {"duration": 100, "eyes": "--"},
-        {"duration": 100, "eyes": "@@"}
+        {"duration": 2000, "eyes": "@"},
+        {"duration": 100, "eyes": "-"},
+        {"duration": 100, "eyes": "@"}
       ],
       "loop": true
     },

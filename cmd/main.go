@@ -70,7 +70,14 @@ var rootCmd = &cobra.Command{
 - Typing animations
 - Dynamic colors and visual effects
 - Built-in character familiars (cat, owl, dragon, etc.)
-- Multi-panel layouts`,
+- Multi-panel layouts
+
+Run "familiar-says live" for a familiar that lives in your terminal: it moves,
+reacts to the commands you run, and offers suggestions.
+
+A message that begins with the name of a subcommand needs quoting or "--":
+    familiar-says -- live long and prosper`,
+	Args: cobra.ArbitraryArgs,
 	RunE: runSay,
 }
 
@@ -344,6 +351,7 @@ func runSay(cmd *cobra.Command, args []string) error {
 		}
 
 		if anim != nil {
+			ownEyes, ownMouth := char.Expression(string(mood), expr.Eyes, expr.Tongue)
 			// Configure character animation
 			config := animation.CharacterAnimationConfig{
 				Character:    char,
@@ -353,8 +361,8 @@ func runSay(cmd *cobra.Command, args []string) error {
 				BubbleStyle:  canvasBubbleStyle,
 				BubbleColor:  theme.BubbleStyle,
 				CharColor:    theme.CharacterStyle,
-				DefaultEyes:  expr.Eyes,
-				DefaultMouth: expr.Tongue,
+				DefaultEyes:  ownEyes,
+				DefaultMouth: ownMouth,
 				Duration:     time.Duration(animDuration) * time.Millisecond,
 				Effect:       effects.Effect(effect),
 			}

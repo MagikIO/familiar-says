@@ -1,0 +1,138 @@
+# familiar-says shell integration for zsh.
+# Load it from ~/.zshrc:
+#
+#     eval "$(familiar-says hook zsh)"
+#
+if [[ -o interactive && -z ${__familiar_loaded-} ]]; then
+    __familiar_loaded=1
+    __familiar_bin={{q .Bin}}
+    __familiar_hint={{q .Dir}}/live.hint
+    # Under `familiar-says wrap` (and only when the wrapper is this shell's
+    # direct parent) command output is marked so the familiar can read it.
+    __familiar_transcript=
+    [[ -n ${FAMILIAR_SAYS_TRANSCRIPT-} && $PPID == "${FAMILIAR_SAYS_WRAP_PID-}" ]] && __familiar_transcript=$FAMILIAR_SAYS_TRANSCRIPT
+{{- if .Perch}}
+    __familiar_frame={{q .Dir}}/shell-$$.frame
+    __familiar_hint={{q .Dir}}/shell-$$.hint
+    # Everything started from this shell talks to this shell's familiar.
+    export FAMILIAR_SAYS_SOCKET={{q .Dir}}/shell-$$.sock
+{{- end}}
+    typeset -gi __familiar_seq=0
+    zmodload zsh/datetime 2>/dev/null
+    autoload -Uz add-zsh-hook
+
+    __familiar_send() {
+        command "$__familiar_bin" event "$@" >/dev/null 2>&1 &!
+    }
+
+    __familiar_preexec() {
+        __familiar_cmd=$1
+        __familiar_busy=1
+        __familiar_start=$EPOCHREALTIME
+        (( __familiar_seq++ ))
+        __familiar_send preexec --shell zsh --seq $__familiar_seq --cwd "$PWD" -- "$1"
+        __familiar_mark S
+    }
+
+    # Under `familiar-says wrap`, mark where a command's output starts and
+    # ends. The wrapper removes the markers; the terminal never sees them.
+    __familiar_mark() {
+        [[ -n $__familiar_transcript ]] && printf '\e]7797;%s;%s\e\\' $1 $__familiar_seq
+        return 0
+    }
+
+    __familiar_precmd() {
+        local last_status=$?
+        [[ -n ${__familiar_cmd-} ]] || return 0
+        local -i ms=$(( (EPOCHREALTIME - __familiar_start) * 1000 ))
+        __familiar_mark E
+        __familiar_send command --shell zsh --seq $__familiar_seq --exit $last_status \
+            --duration $ms --cols ${COLUMNS:-0} --cwd "$PWD" \
+            --transcript "$__familiar_transcript" -- "$__familiar_cmd"
+        __familiar_cmd=
+    }
+
+    add-zsh-hook preexec __familiar_preexec
+    add-zsh-hook precmd __familiar_precmd
+
+    # Alt-G drops the familiar's latest suggestion onto the command line.
+    __familiar_accept() {
+        [[ -r $__familiar_hint ]] || return 0
+        local suggestion
+        IFS= read -r suggestion <"$__familiar_hint"
+        if [[ -n $suggestion ]]; then
+            BUFFER=$suggestion
+            CURSOR=${#BUFFER}
+        fi
+    }
+    zle -N __familiar_accept
+    bindkey '^[g' __familiar_accept
+
+    familiar() {
+        case ${1-} in
+{{- if .Perch}}
+            hide) __familiar_hidden=1 ;;
+            show) __familiar_hidden= ;;
+{{- end}}
+            '') command "$__familiar_bin" pet ;;
+            *) command "$__familiar_bin" "$@" ;;
+        esac
+    }
+{{- if .Perch}}
+
+    # ---- the prompt perch --------------------------------------------------
+    # A headless familiar renders frames to $__familiar_frame and sends this
+    # shell SIG{{.Signal}} whenever the picture changes. The frame is drawn above your
+    # own prompt, and taken away again as you run a command, so it never
+    # litters your scrollback.
+    autoload -Uz add-zle-hook-widget
+
+    __familiar_compose() {
+        __familiar_frame_text=
+        if [[ -z ${__familiar_hidden-} && -r $__familiar_frame ]]; then
+            __familiar_frame_text=$(<$__familiar_frame)
+        fi
+        if [[ -z $__familiar_frame_text ]]; then
+            PROMPT=$__familiar_user_prompt
+        elif [[ -o prompt_subst ]]; then
+            # With prompt_subst the prompt text is scanned for $(...) and
+            # backticks, and the familiar quotes commands in backticks. Refer
+            # to the frame by name so its text is never treated as code.
+            PROMPT='${__familiar_frame_text}'$'\n'$__familiar_user_prompt
+        else
+            PROMPT=$__familiar_frame_text$'\n'$__familiar_user_prompt
+        fi
+        __familiar_set_prompt=$PROMPT
+    }
+
+    # Runs before each prompt. Whatever has set PROMPT since we last did
+    # (you, or your theme) is your real prompt.
+    __familiar_perch_precmd() {
+        [[ $PROMPT != ${__familiar_set_prompt-} ]] && __familiar_user_prompt=$PROMPT
+        __familiar_busy=
+        __familiar_compose
+    }
+    add-zsh-hook precmd __familiar_perch_precmd
+
+    # As a line is accepted, put the prompt back the way it was.
+    __familiar_fold() {
+        [[ $PROMPT == $__familiar_user_prompt ]] && return 0
+        PROMPT=$__familiar_user_prompt
+        __familiar_set_prompt=$PROMPT
+        zle reset-prompt
+    }
+    add-zle-hook-widget line-finish __familiar_fold
+
+    TRAP{{.Signal}}() {
+        [[ -n ${__familiar_busy-} ]] && return 0
+        zle || return 0
+        __familiar_compose
+        zle reset-prompt
+    }
+
+    __familiar_bye() { command "$__familiar_bin" event quit >/dev/null 2>&1 }
+    add-zsh-hook zshexit __familiar_bye
+
+    command "$__familiar_bin" perch --pid $$ --cols ${COLUMNS:-80} --signal {{.Signal}} --format zsh{{if .PerchArgs}} {{args .PerchArgs}}{{end}} >/dev/null 2>&1 &!
+{{- end}}
+fi

@@ -89,14 +89,16 @@ func (fp *FramePlayer) renderFrame(frameIdx int) *canvas.Canvas {
 		charToRender = fp.baseCharacter
 	}
 
-	// Determine eyes and mouth expressions
+	// Determine eyes and mouth expressions. A frame that restates the slot's
+	// own placeholder (e.g. "@@") means "the default expression", so the
+	// mood chosen on the command line shows through between blinks.
 	eyes := fp.defaultEyes
-	if frame.Eyes != "" {
+	if frame.Eyes != "" && !isSlotPlaceholder(fp.baseCharacter.Eyes, frame.Eyes) {
 		eyes = frame.Eyes
 	}
 
 	mouth := fp.defaultMouth
-	if frame.Mouth != "" {
+	if frame.Mouth != "" && !isSlotPlaceholder(fp.baseCharacter.Mouth, frame.Mouth) {
 		mouth = frame.Mouth
 	}
 
@@ -125,6 +127,11 @@ func (fp *FramePlayer) renderFrame(frameIdx int) *canvas.Canvas {
 	}
 
 	return charCanvas
+}
+
+// isSlotPlaceholder reports whether value is just the slot's placeholder text.
+func isSlotPlaceholder(slot *canvas.Slot, value string) bool {
+	return slot != nil && slot.Placeholder != "" && value == slot.Placeholder
 }
 
 // IsComplete returns true if a non-looping animation has finished.

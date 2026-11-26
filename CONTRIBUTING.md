@@ -18,7 +18,7 @@ Thank you for your interest in contributing to familiar-says! This document prov
 
 ### Prerequisites
 
-- Go 1.19 or higher
+- Go 1.25 or higher
 - Make (optional, but recommended)
 
 ### Building
@@ -49,17 +49,32 @@ make test-coverage
 familiar-says/
 ├── cmd/                    # CLI command implementation
 ├── internal/
-│   ├── animation/         # Terminal animations
-│   ├── bubble/            # Speech bubble generation
+│   ├── animation/         # One-shot terminal animations
+│   ├── bubble/            # Speech bubble templates
+│   ├── canvas/            # Static composition, character loading, colors
 │   ├── character/         # Character rendering
+│   ├── config/            # Config file, profiles, environment
 │   ├── effects/           # Visual effects
-│   └── personality/       # Themes and moods
-├── pkg/
-│   └── cowparser/         # .cow file parser
-├── characters/            # Character files (.cow)
+│   ├── personality/       # Themes and moods
+│   ├── stage/             # Live: real-time grid, particles, typed bubbles
+│   ├── creature/          # Live: the familiar's body and behaviour
+│   ├── brain/             # Live: rules that turn shell events into remarks
+│   ├── ipc/               # Live: Unix-socket event protocol
+│   ├── live/              # Live: the world, the TUI, the prompt perch
+│   ├── shell/             # Live: generated fish/bash/zsh hooks
+│   └── wrap/              # Live: pass-through pty that captures command output
+├── characters/            # Character files (JSON)
 ├── examples/              # Example scripts
 └── main.go               # Entry point
 ```
+
+### Working on the live familiar
+
+- **Teaching it something new**: rules live in `internal/brain/brain.go` (`onCommand`, `onFailure`, `OnTick`), the knowledge they draw on in `suggest.go`, and what it says in `quips.go`. A rule returns a `Reaction`; set `Must` if it carries real information (it then bypasses rate limiting and the talkativeness setting) and `Suggest` if it proposes a command the user can accept with Alt-G. Add a test in `brain_test.go` — the brain takes an injected clock and random source, so rules are easy to test.
+- **Teaching it a new error**: add a line to `remedies` in `internal/brain/diagnose.go` (a pattern, what to say, and optionally the fix) and a row to `TestDiagnoseKnownErrors`. More specific errors go above the general ones they resemble.
+- **Giving a character a life**: add a `live` block to its JSON (see the README). Without one it is a front-facing walker that fidgets with whatever animations it has.
+- **Seeing what you did**: `FAMILIAR_DUMP=1 go test ./internal/live -run Bounds -v` prints frames of every character on a small stage. For the real thing, `go build -o familiar-says . && ./familiar-says live`, then from another terminal `./familiar-says event command --exit 127 -- gti status`.
+- **Changing the shell hooks**: the templates are in `internal/shell/`. They run inside people's interactive shells on every command, so keep them cheap, never let them print, and check `go test ./internal/shell` (it syntax-checks the output with each shell that is installed).
 
 ## Adding New Features
 

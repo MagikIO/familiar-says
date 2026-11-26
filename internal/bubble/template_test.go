@@ -367,7 +367,7 @@ func TestGetConnectorCharForStyle(t *testing.T) {
 		{StyleThink, "o"},
 		{StyleShout, "!"},
 		{StyleWhisper, "."},
-		{StyleSong, "♪"},
+		{StyleSong, "\\"}, // song decorates its corners with notes; the tail is plain
 	}
 
 	for _, tt := range tests {

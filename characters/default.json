@@ -24,6 +24,7 @@
   "colors": {
     "eyes": "#8B4513"
   },
+  "live": {"facing": "left", "speed": 5, "gait": "tail_wag", "sounds": ["Moo.", "Mooo~", "*chews thoughtfully*"]},
   "animations": {
     "idle": {
       "frames": [

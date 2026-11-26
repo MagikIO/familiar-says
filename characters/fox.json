@@ -25,6 +25,7 @@
     "outline": "#FF8C00",
     "eyes": "#8B4513"
   },
+  "live": {"facing": "front", "speed": 8, "gait": "tail_wag", "fidgets": ["tail_wag"], "sounds": ["Yip!", "*ears swivel*", "Ring-ding-ding?"]},
   "animations": {
     "idle": {
       "frames": [

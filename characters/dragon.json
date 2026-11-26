@@ -18,13 +18,13 @@
   "anchor": {"x": 6, "y": 0},
   "eyes": {
     "line": 1,
-    "col": 6,
+    "col": 8,
     "width": 2,
     "placeholder": "@@"
   },
   "mouth": {
     "line": 7,
-    "col": 5,
+    "col": 8,
     "width": 2,
     "placeholder": "YY"
   },
@@ -33,6 +33,7 @@
     "eyes": "#FF4500",
     "mouth": "#FF6347"
   },
+  "live": {"facing": "front", "speed": 5, "gait": "wing_flap", "fidgets": ["breathe", "wing_flap"], "sounds": ["*snorts a wisp of smoke*", "Rawr.", "Hrrrm."]},
   "animations": {
     "idle": {
       "frames": [

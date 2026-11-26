@@ -12,7 +12,7 @@
   "anchor": {"x": 6, "y": 0},
   "eyes": {
     "line": 1,
-    "col": 6,
+    "col": 7,
     "width": 2,
     "placeholder": "@@"
   },
@@ -20,6 +20,7 @@
     "outline": "#A80030",
     "eyes": "#A80030"
   },
+  "live": {"facing": "right", "speed": 5, "gait": "tail_wag", "sounds": ["Moo.", "*chews thoughtfully*", "Have you mooed today?"]},
   "animations": {
     "idle": {
       "frames": [

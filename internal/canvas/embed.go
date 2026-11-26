@@ -179,3 +179,19 @@ func ResetCharacterList() {
 	characterListCache = nil
 	characterListOnce = sync.Once{}
 }
+
+// BuiltinSource returns the JSON of a built-in character, for use as the
+// starting point of a new one.
+func BuiltinSource(name string) ([]byte, bool) {
+	name = strings.ToLower(strings.TrimSpace(name))
+	if embeddedFSSet {
+		data, err := embeddedCharacters.ReadFile(characterDirPrefix + "/" + name + ".json")
+		return data, err == nil
+	}
+	dir, found := findCharactersDir()
+	if !found {
+		return nil, false
+	}
+	data, err := os.ReadFile(filepath.Join(dir, name+".json"))
+	return data, err == nil
+}

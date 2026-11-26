@@ -1,0 +1,221 @@
+{{- define "restore"}}            # Your prompt expects $status and $pipestatus to describe the
+            # last command, so put them back. This has to be a literal
+            # pipeline right here: eval and function calls both flatten
+            # $pipestatus to a single value.
+            switch (count $statuses)
+                case 0 1
+                    __familiar_status $statuses[1]
+                case 2
+                    __familiar_status $statuses[1] | __familiar_status $statuses[2]
+                case 3
+                    __familiar_status $statuses[1] | __familiar_status $statuses[2] | __familiar_status $statuses[3]
+                case 4
+                    __familiar_status $statuses[1] | __familiar_status $statuses[2] | __familiar_status $statuses[3] | __familiar_status $statuses[4]
+                case '*'
+                    __familiar_status $statuses[-1]
+            end{{end -}}
+# familiar-says shell integration for fish.
+# Load it from config.fish (after anything that defines your prompt):
+#
+#     familiar-says hook fish{{if .Perch}} --perch{{end}} | source
+#
+if status is-interactive; and not set -q __familiar_loaded
+    set -g __familiar_loaded 1
+    set -g __familiar_bin {{q .Bin}}
+    set -g __familiar_seq 0
+    # Under `familiar-says wrap` (and only when the wrapper is this shell's
+    # direct parent) command output is marked so the familiar can read it.
+    if set -q FAMILIAR_SAYS_TRANSCRIPT
+        and test (string trim -- (command ps -o ppid= -p $fish_pid 2>/dev/null)) = "$FAMILIAR_SAYS_WRAP_PID"
+        set -g __familiar_transcript $FAMILIAR_SAYS_TRANSCRIPT
+    end
+    set -g __familiar_hint {{q .Dir}}/live.hint
+{{- if .Perch}}
+
+    # The perch folds itself away with fish's transient prompt (fish 4.1+).
+    # On an older fish it would leave a copy of the familiar in the
+    # scrollback after every command, so there it stays off.
+    set -l __familiar_v (string split . -- $version)
+    if test "$__familiar_v[1]" -gt 4 2>/dev/null; or test "$__familiar_v[1]" -eq 4 -a "$__familiar_v[2]" -ge 1 2>/dev/null
+        set -g __familiar_perch 1
+        set -g __familiar_frame {{q .Dir}}/shell-$fish_pid.frame
+        set -g __familiar_hint {{q .Dir}}/shell-$fish_pid.hint
+        # Everything started from this shell talks to this shell's familiar.
+        set -gx FAMILIAR_SAYS_SOCKET {{q .Dir}}/shell-$fish_pid.sock
+    else
+        echo "familiar-says: the prompt perch needs fish 4.1 or newer (this is $version); loading the hooks without it." >&2
+    end
+{{- end}}
+
+    function __familiar_send
+        command $__familiar_bin event $argv &>/dev/null &
+        disown 2>/dev/null
+    end
+
+    function __familiar_preexec --on-event fish_preexec
+        set -g __familiar_seq (math $__familiar_seq + 1)
+        set -g __familiar_busy 1
+        __familiar_send preexec --shell fish --seq $__familiar_seq --cwd "$PWD" -- "$argv[1]"
+        # Mark where this command's output starts. The wrapper removes the
+        # marker again; the terminal never sees it.
+        set -q __familiar_transcript; and printf '\e]7797;S;%s\e\\' $__familiar_seq
+    end
+
+    function __familiar_postexec --on-event fish_postexec
+        set -l last_status $status
+        set -e __familiar_busy
+        set -e __familiar_probed
+        set -e __familiar_slow
+        set -q __familiar_transcript; and printf '\e]7797;E;%s\e\\' $__familiar_seq
+        __familiar_send command --shell fish --seq $__familiar_seq --exit $last_status \
+            --duration "$CMD_DURATION" --cols "$COLUMNS" --cwd "$PWD" \
+            --transcript "$__familiar_transcript" -- "$argv[1]"
+    end
+
+    # Alt-G drops the familiar's latest suggestion onto the command line.
+    function __familiar_accept
+        test -r "$__familiar_hint"; or return
+        read -l suggestion <"$__familiar_hint"
+        test -n "$suggestion"; and commandline -r -- $suggestion
+    end
+    bind \eg __familiar_accept
+    bind -M insert \eg __familiar_accept 2>/dev/null
+
+    function familiar --description 'Talk to your familiar (pet, tell, ask, hide, show, ...)'
+        switch "$argv[1]"
+{{- if .Perch}}
+            case hide
+                set -g __familiar_hidden 1
+                commandline -f repaint
+            case show
+                set -e __familiar_hidden
+                commandline -f repaint
+{{- end}}
+            case ''
+                command $__familiar_bin pet
+            case '*'
+                command $__familiar_bin $argv
+        end
+    end
+{{- if .Perch}}
+
+    if set -q __familiar_perch
+    # ---- the prompt perch --------------------------------------------------
+    # A headless familiar renders frames to $__familiar_frame and sends this
+    # shell SIG{{.Signal}} whenever the picture changes. The prompt below prints the
+    # frame above your own prompt, and fish's transient prompt folds it away
+    # again when you run a command, so it never litters your scrollback.
+
+    function __familiar_wake --on-signal SIG{{.Signal}}
+        set -q __familiar_busy; and return
+        set -q __familiar_hidden; and return
+        commandline --paging-mode; and return
+        commandline --search-mode; and return
+        set -g __familiar_tick 1
+        commandline -f repaint
+    end
+
+    function __familiar_resize --on-variable COLUMNS
+        __familiar_send resize --cols "$COLUMNS"
+    end
+
+    function __familiar_exit --on-event fish_exit
+        command $__familiar_bin event quit &>/dev/null
+    end
+
+    function __familiar_status
+        return $argv[1]
+    end
+
+    # Nanoseconds since the epoch, or nothing where date cannot say (BSD
+    # date has no %N). With no clock the prompt is simply never reused.
+    function __familiar_clock
+        set -l now (command date +%s%N 2>/dev/null)
+        string match -qr '^\d{16,}$' -- "$now"; and echo $now
+    end
+
+    functions -q fish_prompt; or function fish_prompt
+        echo -n (prompt_pwd)'> '
+    end
+    functions -c fish_prompt __familiar_user_prompt
+    functions -q fish_right_prompt; and functions -c fish_right_prompt __familiar_user_right_prompt
+
+    # Folding the familiar away relies on fish's transient prompt, which runs
+    # the prompt functions one extra time, with --final-rendering, just before
+    # each command. A prompt written for that wants the call. One that was not
+    # (oh-my-posh, for instance) mistakes it for the next prompt and ends up a
+    # command behind, so those are not called: what they last drew is reused.
+    functions __familiar_user_prompt | string match -q '*final-rendering*'
+    and set -g __familiar_final_ok 1
+    functions -q __familiar_user_right_prompt
+    and functions __familiar_user_right_prompt | string match -q '*final-rendering*'
+    and set -g __familiar_right_final_ok 1
+
+    function fish_prompt
+        set -l statuses $pipestatus
+        set -l final 0
+        contains -- --final-rendering $argv; and set final 1
+
+        # The familiar repaints several times a second while it moves, and
+        # each repaint runs this function. Whether your own prompt should run
+        # each time too depends on what kind it is:
+        #
+        #   - Prompts that update themselves asynchronously (oh-my-posh, tide,
+        #     hydro) are cheap to call and must be called, or their updates
+        #     would be painted over with a stale copy.
+        #   - Prompts that do their work inline (git status on every call)
+        #     never change between commands, and are too slow to run that often.
+        #
+        # So the first animation repaint after each command times your prompt.
+        # Only if it is slow is its output reused until the next command.
+        set -l text $__familiar_prompt
+        set -l reuse 0
+        if test $final = 1
+            set -q __familiar_final_ok; or set reuse 1
+        else if set -q __familiar_tick; and set -q __familiar_slow
+            set reuse 1
+        end
+        if test $reuse = 0
+            set -l started
+            if test $final = 0; and set -q __familiar_tick; and not set -q __familiar_probed
+                set -g __familiar_probed 1
+                set started (__familiar_clock)
+            end
+{{template "restore"}}
+            set text (__familiar_user_prompt $argv | string collect -N)
+            test $final = 0; and set -g __familiar_prompt $text
+            if test -n "$started"
+                set -l finished (__familiar_clock)
+                if test -n "$finished"; and test (math --scale=0 "($finished - $started) / 1000000") -gt 20
+                    set -g __familiar_slow 1
+                end
+            end
+        end
+        set -e __familiar_tick
+
+        if test $final = 0; and not set -q __familiar_hidden; and test -r "$__familiar_frame"
+            read -lz frame <"$__familiar_frame"
+            printf '%s\n' $frame
+        end
+        printf '%s' $text
+    end
+
+    if functions -q __familiar_user_right_prompt
+        function fish_right_prompt
+            set -l statuses $pipestatus
+            if contains -- --final-rendering $argv; and not set -q __familiar_right_final_ok
+                printf '%s' $__familiar_right_prompt
+                return
+            end
+{{template "restore"}}
+            set -g __familiar_right_prompt (__familiar_user_right_prompt $argv | string collect -N)
+            printf '%s' $__familiar_right_prompt
+        end
+    end
+
+    set -g fish_transient_prompt 1
+    command $__familiar_bin perch --pid $fish_pid --cols "$COLUMNS" --signal {{.Signal}}{{if .PerchArgs}} {{args .PerchArgs}}{{end}} &>/dev/null &
+    disown 2>/dev/null
+    end
+{{- end}}
+end

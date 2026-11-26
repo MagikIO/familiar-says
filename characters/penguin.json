@@ -20,6 +20,7 @@
   "colors": {
     "eyes": "#4169E1"
   },
+  "live": {"facing": "left", "speed": 4, "gait": "waddle", "sounds": ["Noot!", "*happy flapping*", "Wark."]},
   "animations": {
     "idle": {
       "frames": [

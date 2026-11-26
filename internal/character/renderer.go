@@ -4,7 +4,9 @@ package character
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/MagikIO/familiar-says/internal/bubble"
@@ -58,8 +60,9 @@ func (r *Renderer) RenderWithTailDirection(text string, char *canvas.Character, 
 		CustomTemplate: r.CustomTemplate,
 	}
 
-	// Compose the output
-	result := canvas.Compose(text, char, expr.Eyes, expr.Tongue, config)
+	// Compose the output, letting the character's own faces outrank the theme's
+	eyes, mouth := char.Expression(string(r.Mood), expr.Eyes, expr.Tongue)
+	result := canvas.Compose(text, char, eyes, mouth, config)
 
 	return result.Render()
 }
@@ -116,12 +119,16 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 		return char, nil
 	}
 
-	// Try to find a JSON file first (these have animations)
-	searchPaths := []string{
-		name + ".json",
-		"characters/" + name + ".json",
-		filepath.Join("characters", name+".json"),
+	// Try to find a JSON file first (these have animations). The user's own
+	// characters come first, so they can also replace a built-in one.
+	searchPaths := []string{}
+	if dir := UserDir(); dir != "" {
+		searchPaths = append(searchPaths, filepath.Join(dir, name+".json"))
 	}
+	searchPaths = append(searchPaths,
+		name+".json",
+		filepath.Join("characters", name+".json"),
+	)
 
 	for _, path := range searchPaths {
 		char, err := canvas.LoadCharacter(path)
@@ -138,9 +145,35 @@ func LoadCharacter(name string) (*canvas.Character, error) {
 	return nil, customerrors.NewCharacterLoadError(name, errors.New("character not found in any standard location"))
 }
 
-// ListCharacters returns all available character names.
+// UserDir is where the user's own characters live.
+func UserDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".config", "familiar-says", "characters")
+}
+
+// ListCharacters returns all available character names: the built-in ones
+// and any the user has made.
 func ListCharacters() []string {
-	return canvas.ListBuiltinCharacters()
+	seen := map[string]bool{}
+	names := []string{}
+	for _, n := range canvas.ListBuiltinCharacters() {
+		seen[n] = true
+		names = append(names, n)
+	}
+	if entries, err := os.ReadDir(UserDir()); err == nil {
+		for _, e := range entries {
+			n := strings.TrimSuffix(e.Name(), ".json")
+			if !e.IsDir() && n != e.Name() && !seen[n] {
+				seen[n] = true
+				names = append(names, n)
+			}
+		}
+	}
+	sort.Strings(names)
+	return names
 }
 
 // RenderMultiPanel renders multiple characters side by side.

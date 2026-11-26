@@ -11,7 +11,7 @@
   "anchor": {"x": 4, "y": 0},
   "eyes": {
     "line": 1,
-    "col": 4,
+    "col": 3,
     "width": 3,
     "placeholder": "@@@"
   },
@@ -25,6 +25,7 @@
     "outline": "#4B0082",
     "eyes": "#FF0000"
   },
+  "live": {"facing": "front", "locomotion": "fly", "speed": 10, "gait": "wing_flap", "sounds": ["Skree!", "*echolocates*", "Eep."]},
   "animations": {
     "idle": {
       "frames": [

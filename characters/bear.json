@@ -18,6 +18,7 @@
     "outline": "#8B4513",
     "eyes": "#000000"
   },
+  "live": {"facing": "front", "speed": 4, "sounds": ["Grmph.", "*sniffs the air*", "Hrrm."]},
   "animations": {
     "idle": {
       "frames": [

@@ -17,6 +17,7 @@
   "colors": {
     "eyes": "#FFD700"
   },
+  "live": {"facing": "front", "speed": 4, "fidgets": ["head_tilt"], "sounds": ["Hoo.", "Hoo-hoo.", "*rotates head most of the way around*"]},
   "animations": {
     "idle": {
       "frames": [

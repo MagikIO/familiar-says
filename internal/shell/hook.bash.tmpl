@@ -1,0 +1,105 @@
+# familiar-says shell integration for bash.
+# Load it from ~/.bashrc:
+#
+#     eval "$(familiar-says hook bash)"
+#
+if [[ $- == *i* && -z ${__familiar_loaded-} ]]; then
+    __familiar_loaded=1
+    __familiar_bin={{q .Bin}}
+    __familiar_hint={{q .Dir}}/live.hint
+    # Under `familiar-says wrap` (and only when the wrapper is this shell's
+    # direct parent) command output is marked so the familiar can read it.
+    __familiar_transcript=
+    [[ -n ${FAMILIAR_SAYS_TRANSCRIPT-} && $PPID == "${FAMILIAR_SAYS_WRAP_PID-}" ]] && __familiar_transcript=$FAMILIAR_SAYS_TRANSCRIPT
+    __familiar_seq=0
+    __familiar_histno=
+
+    __familiar_send() {
+        ( command "$__familiar_bin" event "$@" >/dev/null 2>&1 & )
+    }
+
+    __familiar_now_ms() {
+        if [[ -n ${EPOCHREALTIME-} ]]; then
+            local t=${EPOCHREALTIME/[.,]/}
+            echo $(( t / 1000 ))
+        else
+            echo $(( SECONDS * 1000 ))
+        fi
+    }
+
+    # Runs before each command line. bash has no preexec, so this hangs off
+    # the DEBUG trap and uses the history number to fire once per line.
+    __familiar_preexec() {
+        [[ -n ${__familiar_at_prompt-} && -z ${COMP_LINE-} ]] || return 0
+        local entry histno
+        entry=$(HISTTIMEFORMAT='' builtin history 1)
+        histno=${entry%%[^0-9 ]*}
+        histno=${histno// /}
+        [[ -n $histno && $histno != "$__familiar_histno" ]] || return 0
+        __familiar_histno=$histno
+        __familiar_at_prompt=
+        __familiar_cmd=$(sed -e 's/^ *[0-9]*\*\{0,1\} *//' <<<"$entry")
+        __familiar_start=$(__familiar_now_ms)
+        __familiar_seq=$(( __familiar_seq + 1 ))
+        __familiar_send preexec --shell bash --seq "$__familiar_seq" --cwd "$PWD" -- "$__familiar_cmd"
+        __familiar_mark S
+    }
+
+    # Under `familiar-says wrap`, mark where a command's output starts and
+    # ends. The wrapper removes the markers; the terminal never sees them.
+    __familiar_mark() {
+        [[ -n $__familiar_transcript ]] && printf '\e]7797;%s;%s\e\\' "$1" "$__familiar_seq"
+        return 0
+    }
+
+    __familiar_capture() { __familiar_status=$?; }
+
+    __familiar_precmd() {
+        if [[ -n ${__familiar_cmd-} ]]; then
+            local ms=$(( $(__familiar_now_ms) - __familiar_start ))
+            __familiar_mark E
+            __familiar_send command --shell bash --seq "$__familiar_seq" --exit "$__familiar_status" \
+                --duration "$ms" --cols "${COLUMNS:-0}" --cwd "$PWD" \
+                --transcript "$__familiar_transcript" -- "$__familiar_cmd"
+            __familiar_cmd=
+        fi
+        __familiar_at_prompt=1
+    }
+
+    if [[ -n ${bash_preexec_imported-}${__bp_imported-} ]]; then
+        # bash-preexec is loaded: use its hooks rather than fight over the trap.
+        __familiar_bp_preexec() {
+            __familiar_cmd=$1
+            __familiar_start=$(__familiar_now_ms)
+            __familiar_seq=$(( __familiar_seq + 1 ))
+            __familiar_send preexec --shell bash --seq "$__familiar_seq" --cwd "$PWD" -- "$1"
+            __familiar_mark S
+        }
+        __familiar_bp_precmd() { __familiar_status=$?; __familiar_precmd; }
+        preexec_functions+=(__familiar_bp_preexec)
+        precmd_functions+=(__familiar_bp_precmd)
+    else
+        trap '__familiar_preexec' DEBUG
+        PROMPT_COMMAND="__familiar_capture${PROMPT_COMMAND:+; $PROMPT_COMMAND}; __familiar_precmd"
+    fi
+
+    # Alt-G drops the familiar's latest suggestion onto the command line.
+    __familiar_accept() {
+        [[ -r $__familiar_hint ]] || return 0
+        local suggestion
+        IFS= read -r suggestion <"$__familiar_hint" || true
+        if [[ -n $suggestion ]]; then
+            READLINE_LINE=$suggestion
+            READLINE_POINT=${#suggestion}
+        fi
+    }
+    bind -x '"\eg": __familiar_accept' 2>/dev/null
+
+    familiar() {
+        if [[ $# -eq 0 ]]; then
+            command "$__familiar_bin" pet
+        else
+            command "$__familiar_bin" "$@"
+        fi
+    }
+fi

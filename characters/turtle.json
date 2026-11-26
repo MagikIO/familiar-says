@@ -23,6 +23,7 @@
     "outline": "#2E8B57",
     "eyes": "#8B4513"
   },
+  "live": {"facing": "left", "speed": 2, "gait": "head_bob", "fidgets": ["head_bob"], "sounds": ["...", "*slow blink*", "Slow and steady."]},
   "animations": {
     "idle": {
       "frames": [
